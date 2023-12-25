@@ -1,3 +1,25 @@
-<div>
-    Hello World!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM for WhatsApp</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <!-- Include Bootstrap CSS from CDN if needed -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Include jQuery from CDN if needed -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div id="waiting-message">Waiting for WhatsApp connection, please authorize WhatsApp web</div>
+    <div id="start-conversation" style="display: none">Fetching contacts... Please wait</div>
+
+    <table id="contacts-table">
+
+    </table>
+
 </div>
+<script src="../js/main.js"></script>
+</body>
+</html>
