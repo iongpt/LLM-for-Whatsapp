@@ -1,6 +1,8 @@
 (function(scope) {
     "use strict";
 
+    const { app, BrowserWindow, Menu } = require('electron');
+
     var template = [
         {
             label: "&" + _('LLM Settings'),
@@ -8,8 +10,16 @@
                 {
                     label: _('Settings'),
                     accelerator: 'CmdOrCtrl+,',
-                    click: function () {
-                        console.log("Settings");
+                    click: () => {
+                        let settingsWindow = new BrowserWindow({
+                            width: 800,
+                            height: 600,
+                            webPreferences: {
+                                nodeIntegration: true,
+                                contextIsolation: false
+                            }
+                        });
+                        settingsWindow.loadFile('html/settings.html');
                     }
                 }
             ]

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="../css/settings.css">
+</head>
+<body>
+<div class="settings-container">
+    <h2>LLM Settings</h2>
+    <form id="settings-form">
+        <div class="form-group">
+            <label for="system-prompt">System Prompt:</label>
+            <textarea id="system-prompt" name="systemPrompt"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="openai-key">OpenAI Key:</label>
+            <input type="text" id="openai-key" name="openaiKey">
+        </div>
+        <div class="form-group">
+            <label for="openai-api-endpoint">OpenAI API Endpoint:</label>
+            <input type="text" id="openai-api-endpoint" name="openaiApiEndpoint">
+        </div>
+        <button type="button" id="save-settings">Save Settings</button>
+    </form>
+</div>
+<script src="../js/settings.js"></script>
+</body>
+</html>

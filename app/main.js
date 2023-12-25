@@ -80,7 +80,6 @@ client.on("ready", async () => {
         });
     }
 
-
     global.mainWindow.webContents.send('contacts-data', fullContacts);
 
 });
@@ -104,7 +103,7 @@ client.on("message", async (message) => {
 });
 
 ipcMain.on('check-contacts-on-refresh', (event) => {
-    if (global.fullContacts) {
+    if (global.fullContacts && global.fullContacts.length > 0) {
         global.mainWindow.webContents.send('contacts-data', fullContacts);
     }
 });

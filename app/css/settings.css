@@ -1,0 +1,28 @@
+.settings-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#system-prompt {
+    margin-bottom: 20px;
+    width: 600px;
+    height: 200px;
+}

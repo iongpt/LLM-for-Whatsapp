@@ -17,7 +17,7 @@ ipcRenderer.on('contacts-data', (event, contacts) => {
     document.getElementById('waiting-message').style.display = 'none';
 
 
-    let tableHTML = '<thead>' +
+    var tableHTML = '<thead>' +
         '<tr><th>ID</th><th>Number</th><th>Name</th><th>Type</th><th>Category</th><th>Recent Messages</th><th>Action</th></tr>' +
         '</thead>' +
         '<tbody>';
@@ -39,7 +39,7 @@ ipcRenderer.on('contacts-data', (event, contacts) => {
     const table = document.getElementById('contacts-table');
     table.innerHTML = tableHTML;
 
-    let dataTable = new DataTable('#contacts-table', {
+    new DataTable('#contacts-table', {
         responsive: true
     });
 
