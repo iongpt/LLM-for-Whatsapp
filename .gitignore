@@ -128,3 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+/.wwebjs_cache/2.2353.59.html
+/.idea/*
+

@@ -1,0 +1,34 @@
+{
+  "name": "llm-for-whatsapp",
+  "version": "1.0.0",
+  "description": "Use LLMs to autorespond to Whatsapp messages. Useful to waste scamers' time",
+  "main": "main.js",
+  "repository": "git+https://github.com/iongpt/LLM-for-Whatsapp.git",
+  "keywords": [
+    "LLM",
+    "GPT",
+    "Whatsapp",
+    "Autorespond"
+  ],
+  "author": "IonGPT",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iongpt/LLM-for-Whatsapp/issues"
+  },
+  "homepage": "https://github.com/iongpt/LLM-for-Whatsapp#readme",
+  "dependencies": {
+    "auto-launch": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "electron-context-menu": "^0.9.1",
+    "electron-log": "^2.2.7",
+    "express": "^4.18.2",
+    "gettext-parser": "^1.2.2",
+    "node-gettext": "^2.0.0",
+    "node-notifier": "^8.0.1",
+    "openai": "^3.1.0",
+    "qrcode-terminal": "^0.12.0",
+    "request": "^2.83.0",
+    "whatsapp-web.js": "^1.19.3"
+  }
+}
