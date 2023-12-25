@@ -5,3 +5,35 @@ body {
 #contacts-list {
     margin-bottom: 20px;
 }
+
+#contacts-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#contacts-table th, #contacts-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#contacts-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+#contacts-table tr:nth-child(even){background-color: #f2f2f2;}
+
+#contacts-table tr:hover {background-color: #ddd;}
+
+#contacts-table button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#contacts-table button:hover {
+    background-color: #45a049;
+}

@@ -18,6 +18,7 @@ let CHAT_CONTEXT = "context/chat - " + new Date().getTime() + ".json";
 let CONTACTS_FILE = "contacts.json";
 let context = {};
 global.mainWindow = null;
+global.fullContacts = [];
 
 const { ipcMain } = require('electron');
 
@@ -65,15 +66,14 @@ client.on("ready", async () => {
     global.mainWindow.webContents.send('whatsapp-ready');
     var contacts = await client.getContacts();
 
-    var fullContacts = [];
+
 
     for (const contact of contacts) {
         const fullcontact = await client.getContactById(contact.id._serialized);
-        fullContacts.push({
+        global.fullContacts.push({
+            id: fullcontact.id._serialized,
             number: fullcontact.number,
             name: fullcontact.name,
-            shortName: fullcontact.shortName,
-            pushName: fullcontact.pushName,
             type: fullcontact.isGroup ? 'Group' : 'User',
             category: fullcontact.isBusiness || fullcontact.isEnterprise ? 'Business' : 'Private',
             recent_messages: []
@@ -96,5 +96,16 @@ client.on("message", async (message) => {
     var name = message._data.notifyName
     var body = message.body
 
+    const contactIndex = global.fullContacts.findIndex(c => c.number === number);
+    if (contactIndex !== -1) {
+        global.fullContacts[contactIndex].recent_messages.push(message.body);
+        global.mainWindow.webContents.send('update-recent-messages', { contactId: global.fullContacts[contactIndex].id, messages: global.fullContacts[contactIndex].recent_messages });
+    }
+});
+
+ipcMain.on('check-contacts-on-refresh', (event) => {
+    if (global.fullContacts) {
+        global.mainWindow.webContents.send('contacts-data', fullContacts);
+    }
 });
 

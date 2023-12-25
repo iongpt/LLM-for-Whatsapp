@@ -19,6 +19,12 @@
   "dependencies": {
     "auto-launch": "^5.0.1",
     "cors": "^2.8.5",
+    "datatables.net-bs5": "^1.13.8",
+    "datatables.net-dt": "^1.13.8",
+    "datatables.net-responsive-bs5": "^2.5.0",
+    "datatables.net-responsive-dt": "^2.5.0",
+    "datatables.net-select-bs5": "^1.7.0",
+    "datatables.net-select-dt": "^1.7.0",
     "dotenv": "^16.0.3",
     "electron-context-menu": "^0.9.1",
     "electron-log": "^2.2.7",
