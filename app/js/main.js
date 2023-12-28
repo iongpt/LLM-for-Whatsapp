@@ -1,3 +1,5 @@
+const commons = require('commons.js');
+
 var DataTable = require( 'datatables.net' );
 require( 'datatables.net-responsive' );
 
@@ -30,7 +32,7 @@ ipcRenderer.on('contacts-data', (event, contacts) => {
             <td>${contact.type}</td>
             <td>${contact.category}</td>
             <td></td>
-            <td><button onclick="startLLMChat('${contact.id}')">Start LLM Chat</button></td>
+            <td id="button_${contact.id}"><button onclick="addToLLMList('${contact.id}')">Start LLM Chat</button></td>
         </tr>`;
     });
 
@@ -62,10 +64,36 @@ ipcRenderer.on('receive-contacts-data', (event, contacts) => {
     }
 });
 
-
-function startLLMChat(contactId) {
-    console.log('Start LLM chat for contact ID:', contactId);
-    // Implement the function logic here.
+function addToLLMList(contactId) {
+    try {
+        var settings = commons.readSettings();
+    } catch (e) {
+        console.log(e);
+        alert('Please configure LLM using LLM Settings menu first.');
+        return;
+    }
+    const contact = global.fullContacts.find(c => c.id === contactId);
+    if (contact && !global.llmContacts.includes(contactId)) {
+        global.llmContacts.push(contactId);
+        console.log(`Contact ${contactId} added to LLM list.`);
+        commons.addSystemMessageToContact(contact.id);
+        el = "<button onClick=\"removeFromLLLMList('${contact.id}')\">Stop LLM Chat</button>"
+        document.getElementById(`button_${contactId}`).innerHTML = el;
+        // saveLLMContacts(); // This is dangerous, I played this with some real contacts and I do not want to forget to disable it, so no persistence for now.
+    }
 }
+
+
+function removeFromLLLMList(contactId) {
+    const index = global.llmContacts.indexOf(contactId);
+    if (index > -1) {
+        global.llmContacts.splice(index, 1);
+        console.log(`Contact ${contactId} removed from LLM list.`);
+        el = "<button onclick=\"addToLLMList('${contact.id}')\">Start LLM Chat</button>"
+        document.getElementById(`button_${contactId}`).innerHTML = el;
+        // saveLLMContacts(); // No persistence for now. Maybe later add this as an option.
+    }
+}
+
 
 

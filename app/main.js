@@ -2,6 +2,10 @@ require('dotenv').config();
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
 
+const { shell } = require('electron');
+
+const commons = require('js/commons.js');
+
 global._ = function (text) {
     return text;
 }
@@ -14,11 +18,10 @@ const client = new Client({ puppeteer: { headless: false,args: ['--no-sandbox', 
 
 const { Configuration, OpenAIApi } = require("openai");
 
-let CHAT_CONTEXT = "context/chat - " + new Date().getTime() + ".json";
-let CONTACTS_FILE = "contacts.json";
-let context = {};
 global.mainWindow = null;
 global.fullContacts = [];
+global.llmContacts = [];
+
 
 const { ipcMain } = require('electron');
 
@@ -76,7 +79,7 @@ client.on("ready", async () => {
             name: fullcontact.name,
             type: fullcontact.isGroup ? 'Group' : 'User',
             category: fullcontact.isBusiness || fullcontact.isEnterprise ? 'Business' : 'Private',
-            recent_messages: []
+            messages: []
         });
     }
 
@@ -96,11 +99,23 @@ client.on("message", async (message) => {
     var body = message.body
 
     const contactIndex = global.fullContacts.findIndex(c => c.number === number);
+    const contact = global.fullContacts.find(c => c.number === number);
+
+    if (contact && global.llmContacts.includes(contact.id)) {
+        addMessageToContact(contact.id, "user", body);
+
+    }
+
     if (contactIndex !== -1) {
         global.fullContacts[contactIndex].recent_messages.push(message.body);
         global.mainWindow.webContents.send('update-recent-messages', { contactId: global.fullContacts[contactIndex].id, messages: global.fullContacts[contactIndex].recent_messages });
     }
+
+
 });
+
+
+
 
 ipcMain.on('check-contacts-on-refresh', (event) => {
     if (global.fullContacts && global.fullContacts.length > 0) {

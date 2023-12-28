@@ -1,28 +1,87 @@
-.settings-container {
-    width: 100%;
-    padding: 20px;
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.settings-container {
+    width: 80%;
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1rem;
+    margin-bottom: 20px;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 5px;
+    font-weight: bold;
 }
 
-.form-group input[type="text"] {
+.form-group input[type="text"],
+.form-group textarea {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
+    border-radius: 5px;
+    font-size: 1rem;
 }
 
-#system-prompt {
-    margin-bottom: 20px;
-    width: 600px;
-    height: 200px;
+.form-group textarea {
+    height: 200px; /* 200px height as requested */
+}
+
+.form-group span {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+#save-settings {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#save-settings:hover {
+    background: #0056b3;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .settings-container {
+        width: 95%;
+    }
 }

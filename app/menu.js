@@ -13,7 +13,7 @@
                     click: () => {
                         let settingsWindow = new BrowserWindow({
                             width: 800,
-                            height: 600,
+                            height: 900,
                             webPreferences: {
                                 nodeIntegration: true,
                                 contextIsolation: false
