@@ -1,12 +1,13 @@
-var DataTable = require( 'datatables.net' );
-require( 'datatables.net-responsive' );
+var DataTable = require('datatables.net');
+require('datatables.net-responsive');
 const path = require('path');
 
 
-const { ipcRenderer } = require('electron');
+const {ipcRenderer} = require('electron');
 const fs = require("fs");
 
 let fullContacts = [];
+let llmContacts = [];
 
 ipcRenderer.send('check-contacts-on-refresh');
 
@@ -16,12 +17,14 @@ ipcRenderer.on('whatsapp-ready', () => {
     document.getElementById('start-conversation').style.display = 'block';
 });
 
+
 ipcRenderer.on('contacts-data', (event, contacts) => {
     console.log('contacts-data');
+    fullContacts = data.fullContacts;
+    llmContacts = data.llmContacts;
     document.getElementById('start-conversation').style.display = 'none';
     document.getElementById('waiting-message').style.display = 'none';
 
-    fullContacts = contacts;
 
     var tableHTML = '<thead>' +
         '<tr><th>ID</th><th>Number</th><th>Name</th><th>Type</th><th>Category</th><th>Recent Messages</th><th>Action</th></tr>' +
@@ -52,10 +55,6 @@ ipcRenderer.on('contacts-data', (event, contacts) => {
 });
 
 
-ipcRenderer.on('update-recent-messages', (event, data) => {
-    console.log('update-recent-messages', data);
-});
-
 function readSettings() {
     const settingsFilePath = path.join(__dirname, '..', 'settings.json');
     if (fs.existsSync(settingsFilePath)) {
@@ -70,6 +69,34 @@ function readSettings() {
     }
 }
 
+
+function updateFullContactsInMain() {
+    ipcRenderer.send('update-full-contacts', fullContacts);
+}
+
+function updateLLMContactsInMain() {
+    ipcRenderer.send('update-llm-contacts', llmContacts);
+}
+
+function startConversation(contactId) {
+    ipcRenderer.send('start-conversation', contactId);
+}
+
+
+function addSystemMessageToContact(contactId) {
+    const settingsFilePath = path.join(__dirname, '..', 'settings.json');
+    if (!fs.existsSync(settingsFilePath)) {
+
+        const settings = JSON.parse(fs.readFileSync(settingsFilePath));
+        const systemMessage = settings.systemPrompt;
+
+        const contact = fullContacts.find(c => c.id === contactId);
+        if (contact) {
+            contact.messages = [{role: "system", content: systemMessage}];
+        }
+    }
+}
+
 function addToLLMList(contactId) {
     try {
         readSettings();
@@ -79,27 +106,39 @@ function addToLLMList(contactId) {
         return;
     }
     const contact = fullContacts.find(c => c.id === contactId);
-    if (contact && !global.llmContacts.includes(contactId)) {
-        global.llmContacts.push(contactId);
+    if (contact && !llmContacts.includes(contactId)) {
+        llmContacts.push(contactId);
         console.log(`Contact ${contactId} added to LLM list.`);
         global.commons.addSystemMessageToContact(contact.id);
         var el = "<button onClick=\"removeFromLLLMList('${contact.id}')\">Stop LLM Chat</button>"
         document.getElementById(`button_${contactId}`).innerHTML = el;
+        updateFullContactsInMain();
+        updateLLMContactsInMain();
+
         // saveLLMContacts(); // This is dangerous, I played this with some real contacts and I do not want to forget to disable it, so no persistence for now.
     }
 }
 
 
 function removeFromLLLMList(contactId) {
-    const index = global.llmContacts.indexOf(contactId);
+    const index = llmContacts.indexOf(contactId);
     if (index > -1) {
-        global.llmContacts.splice(index, 1);
+        llmContacts.splice(index, 1);
         console.log(`Contact ${contactId} removed from LLM list.`);
         var el = "<button onclick=\"addToLLMList('${contact.id}')\">Start LLM Chat</button>"
         document.getElementById(`button_${contactId}`).innerHTML = el;
+        updateLLMContactsInMain();
         // saveLLMContacts(); // No persistence for now. Maybe later add this as an option.
     }
 }
+
+ipcRenderer.on('contacts-update', (event, data) => {
+    console.log('contacts-update');
+    fullContacts = data.fullContacts;
+    llmContacts = data.llmContacts;
+});
+
+
 
 
 
