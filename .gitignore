@@ -131,3 +131,5 @@ dist
 /.wwebjs_cache/2.2353.59.html
 /.idea/*
 
+app/settings.json
+
