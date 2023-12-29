@@ -1,5 +1,7 @@
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require('openai');
+
 const fs = require("fs");
+const path = require('path');
 
 function readSettings() {
     const settingsFilePath = path.join(__dirname, '..', 'settings.json');
@@ -70,21 +72,24 @@ async function getLLMMessage(message) {
 }
 
 
-async function getOpenAIResponse(messages, apiKey, model) {
-    const configuration = new Configuration({ apiKey });
-    const openai = new OpenAIApi(configuration);
+async function getOpenAIResponse(messages, apiKey, modelName) {
+    const openai = new OpenAI({
+        apiKey: apiKey
+    });
 
     try {
-        const response = await openai.createChatCompletion({
-            model,
-            messages,
+        const response = await openai.chat.completions.create({
+            model: modelName,
+            messages: messages
         });
-        return response.data.choices[0].message.content;
+        console.log("response", response);
+        return response.choices[0].message.content;
     } catch (error) {
         console.error('Error calling OpenAI API:', error);
         return getRandomStallMessage();
     }
 }
+
 
 async function getCustomOpenAIResponse(messages, apiUrl) {
   //TODO Implement custom LLM integration

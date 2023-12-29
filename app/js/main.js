@@ -20,8 +20,8 @@ ipcRenderer.on('whatsapp-ready', () => {
 
 ipcRenderer.on('contacts-data', (event, contacts) => {
     console.log('contacts-data');
-    fullContacts = data.fullContacts;
-    llmContacts = data.llmContacts;
+    fullContacts = contacts.fullContacts;
+    llmContacts = contacts.llmContacts;
     document.getElementById('start-conversation').style.display = 'none';
     document.getElementById('waiting-message').style.display = 'none';
 
@@ -31,7 +31,7 @@ ipcRenderer.on('contacts-data', (event, contacts) => {
         '</thead>' +
         '<tbody>';
 
-    contacts.forEach(contact => {
+    fullContacts.forEach(contact => {
         tableHTML += `<tr>
             <td>${contact.id}</td>
             <td>${contact.number}</td>
@@ -98,6 +98,7 @@ function addSystemMessageToContact(contactId) {
 }
 
 function addToLLMList(contactId) {
+    console.log("Starting LLM chat with contact: ", contactId);
     try {
         readSettings();
     } catch (e) {
@@ -105,16 +106,19 @@ function addToLLMList(contactId) {
         alert('Please configure LLM using LLM Settings menu first.');
         return;
     }
+    console.log("We have settings");
     const contact = fullContacts.find(c => c.id === contactId);
+    console.log("We have contact: ", contact);
+    console.log("Conditions: ", contact && !llmContacts.includes(contactId));
     if (contact && !llmContacts.includes(contactId)) {
         llmContacts.push(contactId);
         console.log(`Contact ${contactId} added to LLM list.`);
-        global.commons.addSystemMessageToContact(contact.id);
+        addSystemMessageToContact(contact.id);
         var el = "<button onClick=\"removeFromLLLMList('${contact.id}')\">Stop LLM Chat</button>"
         document.getElementById(`button_${contactId}`).innerHTML = el;
         updateFullContactsInMain();
         updateLLMContactsInMain();
-
+        startConversation(contactId);
         // saveLLMContacts(); // This is dangerous, I played this with some real contacts and I do not want to forget to disable it, so no persistence for now.
     }
 }

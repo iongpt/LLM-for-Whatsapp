@@ -50,6 +50,7 @@ function createWindow() {
 
     Menu.setApplicationMenu(menu);
 
+
     client.initialize();
 
 }
@@ -75,6 +76,27 @@ function sendUpdatedContactsToRenderer() {
             fullContacts: fullContacts,
             llmContacts: llmContacts
         });
+    }
+}
+
+function trimMessages(contact) {
+    let totalChars = contact.messages.reduce((sum, msg) => sum + msg.content.length, 0);
+    // Always keep the system message
+    let systemMessage = contact.messages.find(m => m.role === 'system');
+
+    while (totalChars > 4000 && contact.messages.length > 1) {
+        // Skip the first message if it's the system message
+        if (contact.messages[0].role === 'system') {
+            contact.messages.splice(1, 1);
+        } else {
+            contact.messages.shift();
+        }
+        totalChars = contact.messages.reduce((sum, msg) => sum + msg.content.length, 0);
+    }
+
+    // Ensure the system message is always at the beginning
+    if (systemMessage) {
+        contact.messages = [systemMessage, ...contact.messages.filter(m => m.role !== 'system')];
     }
 }
 
