@@ -3,12 +3,14 @@ const { Configuration, OpenAIApi } = require("openai");
 const fs = require("fs");
 
 function readSettings() {
-    const settingsFilePath = path.join(__dirname, 'settings.json');
+    const settingsFilePath = path.join(__dirname, '..', 'settings.json');
+    console.log("settingsFilePath", settingsFilePath);
     if (fs.existsSync(settingsFilePath)) {
         const settings = JSON.parse(fs.readFileSync(settingsFilePath));
-        if (!settings.openaiKey || !settings.openaiApiEndpoint) {
-            throw new Error('OpenAI key and API endpoint are required.');
-        }
+        // if (!settings.openaiKey || !settings.openaiApiEndpoint) {
+        //     throw new Error('OpenAI key and API endpoint are required.');
+        // }
+        console.log("settings", settings);
         return settings;
     } else {
         throw new Error('Settings file not found.');

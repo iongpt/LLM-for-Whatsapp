@@ -1,10 +1,13 @@
 require('dotenv').config();
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
+const path = require('path');
+
 
 const { shell } = require('electron');
 
-const commons = require('js/commons.js');
+global.commons = require('./js/commons');
+
 
 global._ = function (text) {
     return text;
@@ -29,12 +32,13 @@ const { ipcMain } = require('electron');
 
 function createWindow() {
     global.mainWindow = new BrowserWindow({
-        width: 800,
+        width: 1800,
         height: 600,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            enableRemoteModule: true
+            enableRemoteModule: true,
+            // preload: path.join(__dirname, 'js', 'preload.js') //hacked via global for now
         },
         icon: __dirname + 'assets/icon/icon.png'
     });
@@ -67,7 +71,10 @@ app.on('activate', () => {
 client.on("ready", async () => {
     console.log("Client is ready!");
     global.mainWindow.webContents.send('whatsapp-ready');
+    console.log("Client is ready! 1");
     var contacts = await client.getContacts();
+    console.log("Client is ready! 2");
+
 
 
 
@@ -83,7 +90,13 @@ client.on("ready", async () => {
         });
     }
 
+    console.log("Client is ready! 3");
+
+
     global.mainWindow.webContents.send('contacts-data', fullContacts);
+
+    console.log("Client is ready! 4");
+
 
 });
 
