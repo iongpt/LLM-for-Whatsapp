@@ -99,22 +99,33 @@ function addSystemMessageToContact(contactId) {
 
 function addToLLMList(contactId) {
     console.log("Starting LLM chat with contact: ", contactId);
+    let settings;
     try {
-        readSettings();
+       settings =  readSettings();
     } catch (e) {
         console.log(e);
         alert('Please configure LLM using LLM Settings menu first.');
         return;
     }
-    console.log("We have settings");
     const contact = fullContacts.find(c => c.id === contactId);
-    console.log("We have contact: ", contact);
+    console.log("We have contact: ", contact.id, "Fixing system message");
+
+    if (contact.messages.length === 0 || contact.messages[0].role !== "system") {
+        contact.messages.unshift({ role: "system", content: settings.systemPrompt });
+    }
+
+    if (llmContacts.includes(contactId)) {
+        const index = llmContacts.indexOf(contactId);
+        if (index > -1) {
+            llmContacts.splice(index, 1);
+        }
+    }
     console.log("Conditions: ", contact && !llmContacts.includes(contactId));
     if (contact && !llmContacts.includes(contactId)) {
         llmContacts.push(contactId);
         console.log(`Contact ${contactId} added to LLM list.`);
         addSystemMessageToContact(contact.id);
-        var el = "<button onClick=\"removeFromLLLMList('${contact.id}')\">Stop LLM Chat</button>"
+        var el = "<button onClick=\"removeFromLLLMList('" + contact.id + "')\">Stop LLM Chat</button>";
         document.getElementById(`button_${contactId}`).innerHTML = el;
         updateFullContactsInMain();
         updateLLMContactsInMain();
@@ -129,8 +140,9 @@ function removeFromLLLMList(contactId) {
     if (index > -1) {
         llmContacts.splice(index, 1);
         console.log(`Contact ${contactId} removed from LLM list.`);
-        var el = "<button onclick=\"addToLLMList('${contact.id}')\">Start LLM Chat</button>"
+        var el = "<button onclick=\"addToLLMList('" + contactId + "')\">Start LLM Chat</button>";
         document.getElementById(`button_${contactId}`).innerHTML = el;
+
         updateLLMContactsInMain();
         // saveLLMContacts(); // No persistence for now. Maybe later add this as an option.
     }

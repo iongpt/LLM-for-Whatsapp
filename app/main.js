@@ -13,7 +13,7 @@ global._ = function (text) {
     return text;
 }
 
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, globalShortcut } = require('electron');
 const menuTemplate = require('./menu.js');
 
 const { Client } = require("whatsapp-web.js");
@@ -80,28 +80,96 @@ function sendUpdatedContactsToRenderer() {
 }
 
 function trimMessages(contact) {
+    if (!contact || !Array.isArray(contact.messages)) {
+        // Check if contact or contact.messages is not defined
+        throw new Error("Invalid contact or contact.messages");
+    }
+
     let totalChars = contact.messages.reduce((sum, msg) => sum + msg.content.length, 0);
-    // Always keep the system message
-    let systemMessage = contact.messages.find(m => m.role === 'system');
+    let systemMessageIndex = contact.messages.findIndex(m => m.role === 'system');
 
     while (totalChars > 4000 && contact.messages.length > 1) {
-        // Skip the first message if it's the system message
-        if (contact.messages[0].role === 'system') {
+        if (systemMessageIndex === 0) {
+            // Skip the first message if it's the system message
             contact.messages.splice(1, 1);
         } else {
             contact.messages.shift();
+            // Update systemMessageIndex if the first message is removed
+            if (systemMessageIndex !== -1) {
+                systemMessageIndex--;
+            }
         }
         totalChars = contact.messages.reduce((sum, msg) => sum + msg.content.length, 0);
     }
 
-    // Ensure the system message is always at the beginning
-    if (systemMessage) {
-        contact.messages = [systemMessage, ...contact.messages.filter(m => m.role !== 'system')];
+    // If the system message exists and is not at the first position, move it to the start
+    if (systemMessageIndex > 0) {
+        let systemMessage = contact.messages[systemMessageIndex];
+        contact.messages.splice(systemMessageIndex, 1); // Remove the system message from its current position
+        contact.messages.unshift(systemMessage); // Add the system message to the beginning
     }
 }
 
+function keepWithingContextLength(messages) {
+    if (!Array.isArray(messages)) {
+        // Check if messages is an array
+        throw new Error("Invalid messages array");
+    }
 
-app.whenReady().then(createWindow);
+    // Initialize totalChars and ensure each message has a 'content' property
+    let totalChars = messages.reduce((sum, msg) => {
+        if (!msg || typeof msg.content !== 'string') {
+            // Check if msg is defined and msg.content is a string
+            throw new Error("Invalid message or message content");
+        }
+        return sum + msg.content.length;
+    }, 0);
+
+    let systemMessageIndex = messages.findIndex(m => m && m.role === 'system');
+
+    while (totalChars > 4000 && messages.length > 1) {
+        if (systemMessageIndex === 0) {
+            // Skip the first message if it's the system message
+            messages.splice(1, 1);
+        } else {
+            messages.shift();
+            // Update systemMessageIndex if the first message is removed
+            if (systemMessageIndex !== -1) {
+                systemMessageIndex--;
+            }
+        }
+        // Recalculate totalChars with the same checks
+        totalChars = messages.reduce((sum, msg) => {
+            if (!msg || typeof msg.content !== 'string') {
+                throw new Error("Invalid message or message content");
+            }
+            return sum + msg.content.length;
+        }, 0);
+    }
+
+    // If the system message exists and is not at the first position, move it to the start
+    if (systemMessageIndex > 0) {
+        let systemMessage = messages[systemMessageIndex];
+        messages.splice(systemMessageIndex, 1); // Remove the system message from its current position
+        messages.unshift(systemMessage); // Add the system message to the beginning
+    }
+
+    return messages;
+}
+
+
+
+
+
+app.on('ready', () => {
+    globalShortcut.register('CommandOrControl+V', () => {
+        const focusedWindow = BrowserWindow.getFocusedWindow();
+        if (focusedWindow) {
+            focusedWindow.webContents.paste();
+        }
+    });
+    createWindow();
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -136,7 +204,7 @@ client.on("ready", async () => {
 });
 
 client.on("message", async (message) => {
-    console.log("message: ", message)
+    // console.log("message: ", message)
     var type = message.type
     if(type !== 'chat') {
         return true
@@ -151,8 +219,9 @@ client.on("message", async (message) => {
         addMessageToContact(contact.id, "user", body);
         const response = await getLLMMessage(contact.messages);
         addMessageToContact(contact.id, "assistant", response);
-        console.log("We are going to send message: ", response, " to contact: ", contact);
-        console.log("Contact message history is: ", contact.messages);
+        // console.log("We are going to send message: ", response, " to contact: ", contact);
+        contact.messages = keepWithingContextLength(contact.messages);
+        // console.log("Contact message history is: ", contact.messages);
         sendWhatsAppMessage(contact.id, response);
         sendUpdatedContactsToRenderer();
     }
@@ -174,7 +243,7 @@ ipcMain.on('start-conversation', async (event, contactId) => {
         response = await getLLMMessage(contact.messages);
     }
     addMessageToContact(contactId, 'assistant', response);
-    console.log("Sending message:", response, "to contact:", contact);
+    console.log("Sending message:", response, "to contact:", contact.id);
     sendWhatsAppMessage(contact.id, response);
     sendUpdatedContactsToRenderer();
 });

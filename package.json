@@ -1,7 +1,7 @@
 {
   "name": "llm-for-whatsapp",
   "version": "1.0.0",
-  "description": "Use LLMs to autorespond to Whatsapp messages. Useful to waste scamers' time",
+  "description": "Use LLMs to autorespond to Whatsapp messages. Useful to waste scammers' time",
   "main": "main.js",
   "repository": "git+https://github.com/iongpt/LLM-for-Whatsapp.git",
   "keywords": [
@@ -29,14 +29,11 @@
     "build:linuxarmv7l": "electron-packager ./app \"WhatsApp\" --overwrite --out=build/dist --package-manager=yarn --platform=linux --arch=armv7l --electron-version=17.0.0 --icon=build/assets/win/whatsapp.ico"
   },
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-packager": "15.5.1"
+    "electron": "^28.1.0"
   },
   "dependencies": {
+    "electron-packager": "^17.1.2",
     "process-nextick-args": "^1.0.7",
     "util-deprecate": "^1.0.2"
-  },
-  "devDependencies": {
-    "electron": "^28.1.0"
   }
 }

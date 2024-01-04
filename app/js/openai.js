@@ -44,7 +44,7 @@ function getRandomStallMessage() {
 }
 
 
-async function getLLMMessage(message) {
+async function getLLMMessage(messages) {
     let settings;
     try {
         settings = readSettings();
@@ -53,26 +53,32 @@ async function getLLMMessage(message) {
         return getRandomStallMessage();
     }
 
+    if (messages.length === 0 || messages[0].role !== "system") {
+        messages.unshift({ role: "system", content: settings.systemPrompt });
+    }
+
     try {
         // Check if openaiKey and openaiModel are present in the settings
         if (settings.openaiKey && settings.openaiModel) {
-            return await getOpenAIResponse(message, settings.openaiKey, settings.openaiModel);
+            return await getOpenAIResponse(messages, settings.openaiKey, settings.openaiModel);
         }
-        // If openaiKey is not present, but openaiApiEndpoint is, use a custom URL
+        // If openaiKey is not present, but openaiApiEndpoint is, use a custom LLM
         else if (settings.openaiApiEndpoint) {
-            return await getCustomOpenAIResponse(message, settings.openaiApiEndpoint);
+            return await getCustomOpenAIResponse(messages, settings.openaiApiEndpoint);
         } else {
-            console.error('Required OpenAI settings not found.');
+            console.log('Required OpenAI settings not found.');
             return getRandomStallMessage();
         }
     } catch (error) {
-        console.error('Error processing LLM message:', error);
+        console.log('Error processing LLM message:', error);
         return getRandomStallMessage();
     }
 }
 
 
 async function getOpenAIResponse(messages, apiKey, modelName) {
+    console.log("Using custom ChatGPT")
+
     const openai = new OpenAI({
         apiKey: apiKey
     });
@@ -92,7 +98,22 @@ async function getOpenAIResponse(messages, apiKey, modelName) {
 
 
 async function getCustomOpenAIResponse(messages, apiUrl) {
-  //TODO Implement custom LLM integration
+    console.log("Using custom LLM")
+    const openai = new OpenAI({
+        baseURL: apiUrl,
+        apiKey: "dummy"
+    });
+
+    try {
+        const response = await openai.chat.completions.create({
+            messages: messages
+        });
+        console.log("response", response);
+        return response.choices[0].message.content;
+    } catch (error) {
+        console.log('Error calling OpenAI API:', error);
+        return getRandomStallMessage();
+    }
 }
 
 module.exports = { getLLMMessage };

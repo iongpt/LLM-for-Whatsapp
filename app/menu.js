@@ -1,7 +1,8 @@
 (function(scope) {
     "use strict";
 
-    const { app, BrowserWindow, Menu } = require('electron');
+    const { app, Menu, MenuItem, BrowserWindow } = require('electron');
+
 
     var template = [
         {
@@ -20,6 +21,16 @@
                             }
                         });
                         settingsWindow.loadFile('html/settings.html');
+
+                        const contextMenu = new Menu();
+                        contextMenu.append(new MenuItem({ role: 'undo' }));
+                        contextMenu.append(new MenuItem({ role: 'redo' }));
+                        contextMenu.append(new MenuItem({ type: 'separator' }));
+                        contextMenu.append(new MenuItem({ role: 'cut' }));
+                        contextMenu.append(new MenuItem({ role: 'copy' }));
+                        contextMenu.append(new MenuItem({ role: 'paste' }));
+                        contextMenu.append(new MenuItem({ type: 'separator' }));
+                        contextMenu.append(new MenuItem({ role: 'selectAll' }));
                     }
                 }
             ]
