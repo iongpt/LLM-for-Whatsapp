@@ -91,6 +91,10 @@ You can build the application for various operating systems using the following 
   yarn run build:linuxarmv7l
   ```
 
+### After application starts
+- Authorize Whatsapp client by scanning the QR code with the phone
+- Go to the LLM Setting menu (in the top menu bar) select Settings and fill the config in the window (either OpenAI API key, eitther URL for local LLM API)
+
 ## Contributing
 Contributions to **LLM for WhatsApp** are welcome. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute.
 
