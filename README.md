@@ -48,6 +48,8 @@ Before you can run or build LLM for WhatsApp, ensure you have the following inst
    yarn run preinstall
    ```
 
+5. Rename app/settings.json.example to app/settings.json
+
 ## Usage
 
 ### Running in Development Mode
