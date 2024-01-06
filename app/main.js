@@ -56,6 +56,7 @@ function createWindow() {
 }
 
 function addMessageToContact(contactId, role, content) {
+    console.log("Adding message to contact: ", contactId, " with role: ", role, " and content: ", content);
     const contact = fullContacts.find(c => c.id === contactId);
     if (contact) {
         contact.messages.push({ role, content });
@@ -84,6 +85,8 @@ function trimMessages(contact) {
         // Check if contact or contact.messages is not defined
         throw new Error("Invalid contact or contact.messages");
     }
+
+    console.log("Trimming messages for contact: ", contact.id, " with messages: ", contact.messages);
 
     let totalChars = contact.messages.reduce((sum, msg) => sum + msg.content.length, 0);
     let systemMessageIndex = contact.messages.findIndex(m => m.role === 'system');
@@ -227,17 +230,13 @@ client.on("message", async (message) => {
     }
 });
 
-ipcMain.on('start-conversation', async (event, contactId) => {
+ipcMain.on('start-conversation', async (event, data) => {
+    const { contactId, initialMessage } = data;
     const contact = fullContacts.find(c => c.id === contactId);
 
-    if (!contact) {
-        console.log("Contact not found:", contactId);
-        return;
-    }
-
-    var response = null
+    let response = null
     if (contact.messages.length === 0 || contact.messages[contact.messages.length - 1].role !== 'user') {
-        response = 'Hello';
+        response = initialMessage || 'Hello';
     } else {
         console.log("Conversation already started with:", contact);
         response = await getLLMMessage(contact.messages);

@@ -78,9 +78,10 @@ function updateLLMContactsInMain() {
     ipcRenderer.send('update-llm-contacts', llmContacts);
 }
 
-function startConversation(contactId) {
-    ipcRenderer.send('start-conversation', contactId);
+function startConversation(contactId, initialMessage) {
+    ipcRenderer.send('start-conversation', { contactId, initialMessage });
 }
+
 
 
 function addSystemMessageToContact(contactId) {
@@ -122,14 +123,26 @@ function addToLLMList(contactId) {
     }
     console.log("Conditions: ", contact && !llmContacts.includes(contactId));
     if (contact && !llmContacts.includes(contactId)) {
+
         llmContacts.push(contactId);
         console.log(`Contact ${contactId} added to LLM list.`);
+
         addSystemMessageToContact(contact.id);
         var el = "<button onClick=\"removeFromLLLMList('" + contact.id + "')\">Stop LLM Chat</button>";
         document.getElementById(`button_${contactId}`).innerHTML = el;
         updateFullContactsInMain();
         updateLLMContactsInMain();
-        startConversation(contactId);
+
+
+        // We are allowing to set the first message if this is the start of the conversation
+        document.getElementById('customPrompt').style.display = 'block';
+
+        document.getElementById('submitMessage').onclick = function() {
+            const initialMessage = document.getElementById('initialMessage').value;
+            startConversation(contactId, initialMessage);
+            document.getElementById('customPrompt').style.display = 'none';
+        };
+
         // saveLLMContacts(); // This is dangerous, I played this with some real contacts and I do not want to forget to disable it, so no persistence for now.
     }
 }
