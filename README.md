@@ -22,6 +22,14 @@ and as a model, for English, I recommend [Mistral 7B](https://huggingface.co/mis
 
 ## Getting Started
 
+### Use released binaries
+
+Easiest way to start is to [download binaries](https://github.com/iongpt/LLM-for-Whatsapp/releases/latest) for your OS
+
+### Build from sources
+
+Or you can build from sources followint those steps
+
 ### Prerequisites
 Before you can run or build LLM for WhatsApp, ensure you have the following installed:
 - Node.js
