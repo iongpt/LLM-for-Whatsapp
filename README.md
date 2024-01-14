@@ -19,6 +19,8 @@ and as a model, for English, I recommend [Mistral 7B](https://huggingface.co/mis
 - Customizable for various scenarios where automated messaging via Whatsapp are required.
 - Start it for any contact or group and let LLM to continue conversation.
 - Give directions to the LLM via the customizable system prompt
+- Custom message to start conversation.
+- Stop the conversation and resume with custom message
 
 ## Getting Started
 
