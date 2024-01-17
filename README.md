@@ -114,7 +114,7 @@ If you encounter any issues or have feature suggestions, please submit them to t
 
 ## Known issues
 - It gets stuck at loading if you have no contacts on Whatsapp. At least one contact is required to load the app
-- I only tested it on Mac, it is confirmed to work on Windows, but it will require permission for the app to interact with Chrome
+- I only tested it on Mac M1 and Windows x64, it is confirmed to work on Windows, but it will require permission for the app to interact with Chrome
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
