@@ -6,10 +6,7 @@ const { MockMessage } = require('../mocks/whatsapp');
 const { OpenAI: MockOpenAI } = require('../mocks/openai');
 const mockFs = require('../mocks/fs');
 
-// Mock modules
-jest.mock('whatsapp-web.js', () => require('../mocks/whatsapp'));
-jest.mock('openai', () => require('../mocks/openai'));
-jest.mock('electron', () => require('../mocks/electron'));
+// Mocks are set up in setup.js
 
 // Import the module under test
 const openai = require('../../app/js/openai');

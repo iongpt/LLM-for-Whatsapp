@@ -11,15 +11,7 @@ const { OpenAI: MockOpenAI } = require('../mocks/openai');
 const mockFs = require('../mocks/fs');
 const electronMock = require('../mocks/electron');
 
-// Mock external modules
-jest.mock('whatsapp-web.js', () => require('../mocks/whatsapp'));
-jest.mock('openai', () => require('../mocks/openai'));
-jest.mock('electron', () => require('../mocks/electron'));
-jest.mock('qrcode-terminal', () => ({
-  generate: jest.fn((qrCode, callback) => {
-    if (callback) callback();
-  })
-}));
+// Mocks are set up in setup.js
 
 describe('WhatsApp-LLM Integration', () => {
   let mockClient;
