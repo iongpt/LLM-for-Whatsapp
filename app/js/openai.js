@@ -3,15 +3,28 @@ const OpenAI = require('openai');
 const fs = require("fs");
 const path = require('path');
 
+// For testing purposes
+let openAIInstance = null;
+
 function readSettings() {
-    const settingsFilePath = path.join(__dirname, '..', 'settings.json');
-    console.log("settingsFilePath", settingsFilePath);
-    if (fs.existsSync(settingsFilePath)) {
-        const settings = JSON.parse(fs.readFileSync(settingsFilePath));
-        console.log("settings", settings);
-        return settings;
-    } else {
-        throw new Error('Settings file not found.');
+    try {
+        // If running in a test environment, use mock settings
+        if (process.env.NODE_ENV === 'test' && global.mockSettings) {
+            return global.mockSettings;
+        }
+        
+        const settingsFilePath = path.join(__dirname, '..', 'settings.json');
+        console.log("settingsFilePath", settingsFilePath);
+        if (fs.existsSync(settingsFilePath)) {
+            const settings = JSON.parse(fs.readFileSync(settingsFilePath));
+            console.log("settings", settings);
+            return settings;
+        } else {
+            throw new Error('Settings file not found.');
+        }
+    } catch (error) {
+        console.error('Error reading settings:', error);
+        throw error;
     }
 }
 
@@ -43,6 +56,40 @@ function getRandomStallMessage() {
     return stallMessages[randomIndex];
 }
 
+// For testing - trim messages to context length
+function trimMessages(messages, maxLength) {
+    if (!messages || messages.length === 0) return [];
+    if (maxLength <= 0) return [];
+    
+    if (messages.length <= maxLength) return messages;
+    
+    // Always keep the system message if present
+    if (messages[0].role === 'system') {
+        if (maxLength === 1) return [messages[0]];
+        return [messages[0], ...messages.slice(-(maxLength-1))];
+    }
+    
+    return messages.slice(-maxLength);
+}
+
+// For testing - format WhatsApp messages for LLM
+function formatMessagesForLLM(whatsappMessages, systemPrompt) {
+    if (!whatsappMessages || whatsappMessages.length === 0) {
+        return [{role: 'system', content: systemPrompt}];
+    }
+    
+    const formattedMessages = [{role: 'system', content: systemPrompt}];
+    
+    whatsappMessages.forEach(msg => {
+        if (msg.fromMe) {
+            formattedMessages.push({role: 'assistant', content: msg.body});
+        } else {
+            formattedMessages.push({role: 'user', content: msg.body});
+        }
+    });
+    
+    return formattedMessages;
+}
 
 async function getLLMMessage(messages) {
     let settings;
@@ -58,6 +105,11 @@ async function getLLMMessage(messages) {
     }
 
     try {
+        // For testing - use the sendMessageToLLM function if available
+        if (process.env.NODE_ENV === 'test') {
+            return await sendMessageToLLM(messages);
+        }
+        
         // Check if openaiKey and openaiModel are present in the settings
         if (settings.openaiKey && settings.openaiModel) {
             return await getOpenAIResponse(messages, settings.openaiKey, settings.openaiModel);
@@ -75,16 +127,17 @@ async function getLLMMessage(messages) {
     }
 }
 
-
 async function getOpenAIResponse(messages, apiKey, modelName) {
-    console.log("Using custom ChatGPT")
+    console.log("Using OpenAI ChatGPT");
 
-    const openai = new OpenAI({
-        apiKey: apiKey
-    });
+    if (!openAIInstance) {
+        openAIInstance = new OpenAI({
+            apiKey: apiKey
+        });
+    }
 
     try {
-        const response = await openai.chat.completions.create({
+        const response = await openAIInstance.chat.completions.create({
             model: modelName,
             messages: messages
         });
@@ -96,16 +149,18 @@ async function getOpenAIResponse(messages, apiKey, modelName) {
     }
 }
 
-
 async function getCustomOpenAIResponse(messages, apiUrl) {
-    console.log("Using custom LLM")
-    const openai = new OpenAI({
-        baseURL: apiUrl,
-        apiKey: "dummy"
-    });
+    console.log("Using custom LLM");
+    
+    if (!openAIInstance) {
+        openAIInstance = new OpenAI({
+            baseURL: apiUrl,
+            apiKey: "dummy"
+        });
+    }
 
     try {
-        const response = await openai.chat.completions.create({
+        const response = await openAIInstance.chat.completions.create({
             messages: messages
         });
         console.log("response", response);
@@ -116,4 +171,40 @@ async function getCustomOpenAIResponse(messages, apiUrl) {
     }
 }
 
-module.exports = { getLLMMessage };
+// For testing - direct access to LLM API
+async function sendMessageToLLM(messageHistory) {
+    try {
+        if (!openAIInstance) {
+            // Create an instance with mock or real settings
+            const settings = readSettings();
+            openAIInstance = new OpenAI({
+                apiKey: settings.openaiKey || 'dummy-key',
+                ...(settings.openaiApiEndpoint ? { baseURL: settings.openaiApiEndpoint } : {})
+            });
+        }
+        
+        const completion = await openAIInstance.chat.completions.create({
+            model: readSettings().openaiModel || 'gpt-3.5-turbo',
+            messages: messageHistory,
+        });
+        
+        return completion.choices[0].message.content;
+    } catch (error) {
+        console.error('Error calling LLM API:', error);
+        return `Error: ${error.message || 'Unknown error occurred'}`;
+    }
+}
+
+// For testing - access the OpenAI instance
+function getOpenAIInstance() {
+    return openAIInstance;
+}
+
+module.exports = { 
+    getLLMMessage,
+    // Export additional functions for testing
+    trimMessages,
+    formatMessagesForLLM,
+    sendMessageToLLM,
+    getOpenAIInstance
+};

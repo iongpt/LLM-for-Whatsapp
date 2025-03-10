@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/iongpt/LLM-for-Whatsapp#readme",
   "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
     "dev": "electron --inspect=5858 ./app",
     "preinstall": "cd app && yarn",
     "gettext": "xgettext app/*.js -j --omit-header -o app/locale/messages.pot && xgettext app/html/*.html -L JavaScript -j --omit-header -o app/locale/messages.pot",
@@ -29,7 +31,15 @@
     "build:linuxarmv7l": "electron-packager ./app \"WhatsApp\" --overwrite --out=build/dist --package-manager=yarn --platform=linux --arch=armv7l --electron-version=17.0.0 --icon=build/assets/win/whatsapp.ico"
   },
   "devDependencies": {
-    "electron": "^28.1.0"
+    "@babel/core": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
+    "babel-jest": "^29.7.0",
+    "electron": "^28.1.0",
+    "jest": "^29.7.0",
+    "mock-fs": "^5.5.0",
+    "qrcode-terminal": "^0.12.0",
+    "supertest": "^7.0.0",
+    "whatsapp-web.js": "^1.26.0"
   },
   "dependencies": {
     "electron-packager": "^17.1.2",
