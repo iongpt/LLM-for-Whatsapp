@@ -83,7 +83,7 @@ export function initWhatsApp(window: BrowserWindow) {
       clientId: 'whatsapp-llm-assistant' 
     }),
     puppeteer: {
-      headless: false, // Show WhatsApp window for authentication and debugging
+      headless: true, // Hide WhatsApp window - we'll show QR code in our UI
       executablePath: puppeteer.executablePath(), // Use installed Puppeteer
       args: [
         '--no-sandbox',
@@ -91,12 +91,10 @@ export function initWhatsApp(window: BrowserWindow) {
         '--disable-gpu',
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
-        '--window-size=800,600',
-        '--window-position=100,100'
       ],
       defaultViewport: {
-        width: 800,
-        height: 600
+        width: 1280,
+        height: 900
       },
       ignoreHTTPSErrors: true
     }
@@ -125,17 +123,24 @@ function setupEventHandlers() {
   // QR code event
   whatsappClient.on('qr', (qrCode) => {
     console.log('QR code received, length:', qrCode.length);
-    // Generate QR code image using qrcode-terminal
+    // Generate QR code image with better options for clarity
     const qrcode = require('qrcode');
-    qrcode.toDataURL(qrCode, (err, url) => {
+    qrcode.toDataURL(qrCode, {
+      errorCorrectionLevel: 'H', // High error correction for better scanning
+      margin: 2,
+      scale: 8, // Larger scale for better visibility
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    }, (err, url) => {
       if (err) {
         console.error('Failed to generate QR code image:', err);
         return;
       }
-      // Extract base64 part
-      const base64Data = url.split(',')[1];
+      
       console.log('QR code image generated, sending to renderer');
-      mainWindow?.webContents.send(IPCChannels.WHATSAPP_QR, base64Data);
+      mainWindow?.webContents.send(IPCChannels.WHATSAPP_QR, url);
     });
   });
 
