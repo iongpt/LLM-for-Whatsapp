@@ -1,125 +1,105 @@
-# LLM for WhatsApp
+# WhatsApp LLM Assistant
 
-## Description
-**LLM for WhatsApp** is an application designed to automate responses to WhatsApp messages using an LLM.
-I created this for fun and to engage with and potentially wasting the time of scammers. I have used it several times when I was approach by scammers and was a blast. 
-In the end, my goal is to have my phone number banned on all scamming lists, marked as "useless".
-Of course can be used for any kind of autoresponding needs, it has fully customizable system prompt and list of contacts to interacat with.
+WhatsApp client with LLM-powered auto-replies for Mac, Windows, and Linux.
 
-Please note that **LLM for WhatsApp** is using [whatsapp.js](https://github.com/pedroslopez/whatsapp-web.js) that is using automation on the Whatsapp web client, a method that is not officially supported by Meta.
-For any business purposes, it is recommeded to apply for business API access and use the Whatsapp business API instead of this.
+## Key Features
 
-The application integrates with OpenAI's models via API or any custom LLM that's compatible with OpenAI's API interface. For a very quick setup, I recommend [Oobabooga with OpenAI extension](https://github.com/oobabooga/text-generation-webui/wiki/12-%E2%80%90-OpenAI-API) 
-and as a model, for English, I recommend [Mistral 7B](https://huggingface.co/mistralai/Mistral-7B-v0.1).
+- **Interactive LLM Integration**: Choose between OpenAI's GPT, local models via Ollama, or other custom LLM APIs
+- **Selective Auto-Reply**: Enable or disable auto-reply for specific chats
+- **Customizable System Prompts**: Define how your AI assistant should behave in conversations
+- **Multi-Platform Support**: Works on Windows, macOS, and Linux
+- **Message History**: Maintains conversation context for more coherent responses
 
-## Features
-- Automated responses to WhatsApp messages.
-- Support for OpenAI API via API key.
-- Support for custom LLMs for complete privacy.
-- Customizable for various scenarios where automated messaging via Whatsapp are required.
-- Start it for any contact or group and let LLM to continue conversation.
-- Give directions to the LLM via the customizable system prompt
-- Custom message to start conversation.
-- Stop the conversation and resume with custom message
-
-
-## Getting Started
-
-### Use released binaries
-
-Easiest way to start is to [download binaries](https://github.com/iongpt/LLM-for-Whatsapp/releases/latest) for your OS
-
-### Build from sources
-
-Or you can build from sources followint those steps
+## Installation
 
 ### Prerequisites
-Before you can run or build LLM for WhatsApp, ensure you have the following installed:
 - Node.js
-- Yarn package manager
+- npm or yarn
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/iongpt/LLM-for-Whatsapp.git
-   ```
+### Setup and Run
 
-2. Navigate to the application directory:
-   ```bash
-   cd LLM-for-Whatsapp
-   ```
-
-3. Install the necessary packages:
-   ```bash
-   yarn install
-   ```
-
-4. Run the preinstall script for extra libraries defined in the app folder:
-   ```bash
-   yarn run preinstall
-   ```
-
-5. Rename app/settings.json.example to app/settings.json
-
-## Usage
-
-### Running in Development Mode
-To run the application in development mode:
-```bash
-yarn run dev
+1. Clone the repository
+```
+git clone https://github.com/iongpt/LLM-for-Whatsapp.git
+cd LLM-for-Whatsapp
 ```
 
-### Building the Application
-You can build the application for various operating systems using the following commands:
+2. Install dependencies
+```
+yarn install
+```
 
-- For Windows:
-  ```bash
-  yarn run build:win
-  ```
+3. Build the application
+```
+yarn build
+```
 
-- For macOS (Intel):
-  ```bash
-  yarn run build:osx
-  ```
+4. Start the application
+```
+yarn start
+```
 
-- For macOS (M1):
-  ```bash
-  yarn run build:osxm1
-  ```
+## WhatsApp Authentication
 
-- For Linux (x64):
-  ```bash
-  yarn run build:linux
-  ```
+1. Launch the application
+2. Scan the QR code with WhatsApp on your phone (Menu > WhatsApp Web > Link a Device)
+3. After authentication, your chats will appear in the left sidebar
 
-- For Linux (32-bit):
-  ```bash
-  yarn run build:linux32
-  ```
+## Using Auto-Reply
 
-- For Linux (ARMv7l):
-  ```bash
-  yarn run build:linuxarmv7l
-  ```
+1. Select a chat from the sidebar
+2. Toggle the "Auto-reply" switch to enable AI responses for that chat
+3. The assistant will automatically respond to incoming messages in that chat
+4. You can also toggle "Auto-reply to all chats" in the Settings tab
 
-### After application starts
-- Authorize Whatsapp client by scanning the QR code with the phone
-- Go to the LLM Setting menu (in the top menu bar) select Settings and fill the config in the window (either OpenAI API key, eitther URL for local LLM API)
+## Configuration Options
 
-## Contributing
-Contributions to **LLM for WhatsApp** are welcome. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute.
+### LLM Provider Settings
+- OpenAI API (requires API key)
+- Local models via Ollama
+- Custom API endpoints for other LLM providers
 
-## Issues
-If you encounter any issues or have feature suggestions, please submit them to the [issues page](https://github.com/iongpt/LLM-for-Whatsapp/issues).
+### Response Settings
+- Temperature: Control randomness of responses (0.0-2.0)
+- System prompt: Define assistant behavior
+- History length: Number of messages to include for context
 
-## Known issues
-- It gets stuck at loading if you have no contacts on Whatsapp. At least one contact is required to load the app
-- I only tested it on Mac M1 and Windows x64, it is confirmed to work on Windows, but it will require permission for the app to interact with Chrome
+## Building Packages
+
+To build for your platform:
+
+```
+# For all platforms
+yarn package:all
+
+# For Windows
+yarn package:win
+
+# For macOS
+yarn package:mac
+
+# For Linux
+yarn package:linux
+```
+
+## Development
+
+```
+# Run in development mode with auto-reload
+yarn dev
+
+# Run linting
+yarn lint
+```
+
+## Customizing LLM Integration
+
+For details on integrating custom LLM backends, check out our [custom_LLM.md](custom_LLM.md) guide.
+
+## Disclaimer
+
+This project is not affiliated with WhatsApp or Meta. It uses an unofficial WhatsApp Web client library and should be used responsibly and in accordance with WhatsApp's terms of service.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-## Author
-Developed by IonGPT.
-
----
+MIT License
