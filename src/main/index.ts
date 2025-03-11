@@ -88,7 +88,7 @@ async function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,  // Enable context isolation for preload to work
       preload: path.join(__dirname, 'preload.js'),
-      devTools: true // Always enable DevTools
+      devTools: false // Always enable DevTools
     },
     icon: path.join(__dirname, '../../assets/icon/icon.png'),
     show: !settingsStore.store.startMinimized

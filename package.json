@@ -17,7 +17,7 @@
     "package:release": "npm run clean && npm run build && electron-builder --publish never",
     "clean": "rm -rf dist release",
     "release": "npm run build && electron-builder --publish always",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall-disabled": "electron-builder install-app-deps"
   },
   "author": "IonGPT",
   "license": "MIT",
