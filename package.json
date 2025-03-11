@@ -6,8 +6,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "concurrently \"npm run build:watch\" \"electron .\"",
-    "build": "tsc",
-    "build:watch": "tsc -w",
+    "build": "tsc && mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/",
+    "build:watch": "tsc -w & (mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/ && nodemon --watch src/renderer/*.html --exec 'cp src/renderer/index.html dist/renderer/')",
     "lint": "eslint src --ext .ts,.tsx",
     "package:all": "npm run build && npm run package:win && npm run package:mac && npm run package:linux",
     "package:win": "electron-builder --win",
@@ -31,6 +31,7 @@
     "electron": "^28.1.4",
     "electron-builder": "^24.9.1",
     "eslint": "^8.56.0",
+    "nodemon": "^3.0.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
