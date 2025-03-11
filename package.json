@@ -4,8 +4,8 @@
   "description": "WhatsApp client with LLM-powered auto-replies for Mac, Windows, and Linux",
   "main": "dist/main/index.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "concurrently \"npm run build:watch\" \"electron .\"",
+    "start": "npx electron .",
+    "dev": "concurrently \"npm run build:watch\" \"npx electron .\"",
     "build": "tsc && mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/",
     "build:watch": "tsc -w & (mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/ && nodemon --watch src/renderer/*.html --exec 'cp src/renderer/index.html dist/renderer/')",
     "lint": "eslint src --ext .ts,.tsx",
@@ -22,13 +22,13 @@
   "author": "IonGPT",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.11.0",
+    "@types/node": "^20.17.24",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
     "concurrently": "^8.2.2",
-    "electron": "^28.1.4",
+    "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
     "eslint": "^8.56.0",
     "nodemon": "^3.0.2",
@@ -74,7 +74,9 @@
     "compression": "maximum",
     "mac": {
       "category": "public.app-category.productivity",
-      "target": ["default"],
+      "target": [
+        "default"
+      ],
       "icon": "build/icons/icon.png",
       "darkModeSupport": true,
       "hardenedRuntime": true,
@@ -82,13 +84,27 @@
     },
     "dmg": {
       "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ],
-      "window": { "width": 540, "height": 380 }
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     },
     "win": {
-      "target": ["portable", "nsis"],
+      "target": [
+        "portable",
+        "nsis"
+      ],
       "icon": "build/icons/icon.png",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
@@ -101,7 +117,9 @@
       "artifactName": "${productName}-${version}-Portable.exe"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Utility",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
