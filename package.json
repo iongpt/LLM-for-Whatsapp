@@ -12,7 +12,11 @@
     "package:all": "npm run build && npm run package:win && npm run package:mac && npm run package:linux",
     "package:win": "electron-builder --win",
     "package:mac": "electron-builder --mac",
+    "package:mac-arm": "electron-builder --mac --arm64",
     "package:linux": "electron-builder --linux",
+    "package:release": "npm run clean && npm run build && electron-builder --publish never",
+    "clean": "rm -rf dist release",
+    "release": "npm run build && electron-builder --publish always",
     "postinstall": "electron-builder install-app-deps"
   },
   "author": "IonGPT",
@@ -49,8 +53,8 @@
     "appId": "com.iongpt.whatsapp-llm-assistant",
     "productName": "WhatsApp LLM Assistant",
     "directories": {
-      "output": "dist",
-      "buildResources": "build"
+      "output": "release",
+      "buildResources": "build/icons"
     },
     "files": [
       "dist/**/*",
@@ -58,26 +62,51 @@
     ],
     "asarUnpack": [
       "node_modules/whatsapp-web.js/**/*",
-      "node_modules/puppeteer-core/**/*"
+      "node_modules/puppeteer-core/**/*",
+      "node_modules/puppeteer/**/*"
     ],
+    "asar": true,
+    "npmRebuild": true,
+    "buildDependenciesFromSource": true,
+    "nodeGypRebuild": false,
+    "electronDist": "node_modules/electron/dist",
+    "compression": "maximum",
     "mac": {
       "category": "public.app-category.productivity",
-      "target": [
-        "dmg",
-        "zip"
-      ]
+      "target": ["default"],
+      "icon": "build/icons/icon.png",
+      "darkModeSupport": true,
+      "hardenedRuntime": true,
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ],
+      "window": { "width": 540, "height": 380 }
     },
     "win": {
-      "target": [
-        "nsis"
-      ]
+      "target": ["portable", "nsis"],
+      "icon": "build/icons/icon.png",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.exe"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "Utility"
+      "target": ["AppImage"],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
     }
   }
 }
