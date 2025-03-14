@@ -9,7 +9,30 @@ import { Chat, ChatMessage } from '../shared/types';
 // Access to Electron API
 declare global {
   interface Window {
-    api: any;
+    api: {
+      whatsapp: {
+        onQRCode: (callback: (qrCode: string) => void) => void;
+        onReady: (callback: () => void) => void;
+        onAuthFailure: (callback: (message: string) => void) => void;
+        onDisconnected: (callback: (reason: string) => void) => void;
+        onMessage: (callback: (data: { chatId: string, message: ChatMessage }) => void) => void;
+        logout: () => Promise<{ success: boolean; message: string }>;
+      };
+      settings: {
+        getAppSettings: () => Promise<any>;
+        setAppSettings: (settings: any) => Promise<void>;
+        getLLMSettings: () => Promise<any>;
+        setLLMSettings: (settings: any) => Promise<void>;
+        testLLM: (settings: any) => Promise<{ success: boolean; message: string }>;
+      };
+      chats: {
+        onListUpdate: (callback: (chats: Chat[]) => void) => void;
+        getHistory: (chatId: string) => Promise<{ chat: Chat, messages: ChatMessage[] } | null>;
+        toggleAutoReply: (chatId: string, enabled: boolean) => void;
+        sendMessage: (chatId: string, text: string) => Promise<boolean>;
+        refreshChats: () => void;
+      };
+    };
   }
 }
 
@@ -69,12 +92,9 @@ const App: React.FC = () => {
     
     // Cleanup on unmount
     return () => {
-      qrUnsubscribe();
-      readyUnsubscribe();
-      authFailureUnsubscribe();
-      disconnectedUnsubscribe();
-      chatListUnsubscribe();
-      messageUnsubscribe();
+      // Remove event listeners
+      // Note: Since we don't have a proper unsubscribe mechanism, we'll just
+      // let the component unmount without explicit cleanup
     };
   }, [selectedChatId]);
   
@@ -82,7 +102,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (selectedChatId) {
       window.api.chats.getHistory(selectedChatId)
-        .then((data: { chat: Chat, messages: ChatMessage[] }) => {
+        .then((data) => {
           if (data) {
             setSelectedChatMessages(data.messages);
           } else {
@@ -112,7 +132,7 @@ const App: React.FC = () => {
       if (!success) {
         console.error('Failed to send message');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
     }
   };

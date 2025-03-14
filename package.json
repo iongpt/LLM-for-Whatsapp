@@ -22,6 +22,7 @@
   "author": "IonGPT",
   "license": "MIT",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.17.24",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
@@ -42,6 +43,7 @@
     "axios": "^1.6.5",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.7",
+    "fs-extra": "^11.3.0",
     "openai": "^4.24.1",
     "puppeteer": "^24.4.0",
     "qrcode": "^1.5.4",

@@ -15,7 +15,8 @@ const IPCChannels = {
   APP_SETTINGS_SET: 'app-settings-set',
   LLM_SETTINGS_GET: 'llm-settings-get',
   LLM_SETTINGS_SET: 'llm-settings-set',
-  LLM_TEST: 'llm-test'
+  LLM_TEST: 'llm-test',
+  WHATSAPP_LOGOUT: 'whatsapp-logout'
 };
 
 // Define the API to expose to the renderer process
@@ -45,6 +46,10 @@ contextBridge.exposeInMainWorld('api', {
     onMessage: (callback) => {
       ipcRenderer.on(IPCChannels.WHATSAPP_MESSAGE, (_, data) => callback(data));
       return () => ipcRenderer.removeAllListeners(IPCChannels.WHATSAPP_MESSAGE);
+    },
+    
+    logout: async () => {
+      return ipcRenderer.invoke(IPCChannels.WHATSAPP_LOGOUT);
     }
   },
   

@@ -51,6 +51,7 @@ const SettingsView: React.FC = () => {
   const [llmSettings, setLLMSettings] = useState<LLMSettings | null>(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [testing, setTesting] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   
   // Load settings on mount
   useEffect(() => {
@@ -174,6 +175,45 @@ const SettingsView: React.FC = () => {
     setSnackbar({ ...snackbar, open: false });
   };
   
+  // Handle WhatsApp logout
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to log out of WhatsApp? You will need to scan the QR code again to reconnect.')) {
+      setLoggingOut(true);
+      
+      try {
+        const result = await window.api.whatsapp.logout();
+        
+        if (result.success) {
+          setSnackbar({
+            open: true,
+            message: 'Logged out successfully. Please refresh the app to reconnect.',
+            severity: 'success'
+          });
+          
+          // Reload the app after 2 seconds
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          setSnackbar({
+            open: true,
+            message: `Logout failed: ${result.message}`,
+            severity: 'error'
+          });
+        }
+      } catch (error: any) {
+        console.error('Error during logout:', error);
+        setSnackbar({
+          open: true,
+          message: `Logout error: ${error?.message || 'Unknown error'}`,
+          severity: 'error'
+        });
+      } finally {
+        setLoggingOut(false);
+      }
+    }
+  };
+  
   // Loading state
   if (!appSettings || !llmSettings) {
     return (
@@ -290,14 +330,25 @@ const SettingsView: React.FC = () => {
             <FormHelperText>Enable detailed logging for troubleshooting</FormHelperText>
           </Box>
           
-          <Button 
-            variant="contained" 
-            color="primary" 
-            sx={{ mt: 4 }}
-            onClick={saveAppSettings}
-          >
-            Save Settings
-          </Button>
+          <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={saveAppSettings}
+            >
+              Save Settings
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              color="error"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              startIcon={loggingOut ? <CircularProgress size={20} color="error" /> : undefined}
+            >
+              {loggingOut ? 'Logging Out...' : 'Logout from WhatsApp'}
+            </Button>
+          </Box>
         </TabPanel>
         
         {/* LLM Settings Tab */}

@@ -1,6 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron';
 import { Client, LocalAuth, Message, MessageMedia } from 'whatsapp-web.js';
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import Store from 'electron-store';
 import { generateLLMResponse } from './llm';
@@ -20,7 +21,8 @@ const IPCChannels = {
   APP_SETTINGS_SET: 'app-settings-set',
   LLM_SETTINGS_GET: 'llm-settings-get',
   LLM_SETTINGS_SET: 'llm-settings-set',
-  LLM_TEST: 'llm-test'
+  LLM_TEST: 'llm-test',
+  WHATSAPP_LOGOUT: 'whatsapp-logout'
 };
 
 // Define interfaces needed in this file
@@ -394,6 +396,51 @@ function saveConversation(chatId: string, messages: ChatMessage[]) {
   conversationStore.set(`chat:${chatId}`, messagesToSave);
 }
 
+// Logout from WhatsApp
+async function logoutWhatsApp(): Promise<{ success: boolean; message: string }> {
+  if (!whatsappClient) {
+    return { success: false, message: 'WhatsApp client not initialized' };
+  }
+
+  try {
+    console.log('Attempting to logout from WhatsApp...');
+    
+    // Clear all data from our app
+    chats.clear();
+    autoReplyChatIds.clear();
+    global.isAutoReplying = false;
+    global.autoReplyingChatId = null;
+    
+    // Properly destroy the client
+    await whatsappClient.destroy();
+    
+    // Explicitly set client to null
+    whatsappClient = null;
+    
+    // Clean up the auth directory
+    const authPath = path.join(process.cwd(), '.wwebjs_auth', 'session-whatsapp-llm-assistant');
+    
+    try {
+      // Use fs-extra's remove instead of rmdir 
+      // This handles non-empty directories recursively
+      await fsExtra.remove(authPath);
+      console.log('Successfully removed auth directory');
+    } catch (err) {
+      console.error('Error removing auth directory:', err);
+      // Don't fail the logout just because we couldn't remove the directory
+    }
+    
+    console.log('WhatsApp logout completed successfully');
+    return { success: true, message: 'Logged out successfully' };
+  } catch (error: any) {
+    console.error('Error during WhatsApp logout:', error);
+    return { 
+      success: false, 
+      message: `Logout failed: ${error?.message || 'Unknown error'}`
+    };
+  }
+}
+
 // Set up IPC handlers for communication with renderer
 function setupIPCHandlers() {
   // Toggle auto-reply for a chat
@@ -443,6 +490,11 @@ function setupIPCHandlers() {
   ipcMain.on('refresh-chats', () => {
     console.log('Received request to refresh chats');
     sendChatListUpdate();
+  });
+  
+  // Handle logout request
+  ipcMain.handle(IPCChannels.WHATSAPP_LOGOUT, async () => {
+    return logoutWhatsApp();
   });
 }
 
