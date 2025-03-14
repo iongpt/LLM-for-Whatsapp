@@ -10,6 +10,8 @@ Thank you for downloading WhatsApp LLM Assistant! This document provides instruc
 ### Windows
 - Double-click on `run-windows.bat`
 - If asked for administrator permissions, please allow them (needed for Node.js installation)
+- If Node.js is installed during the process, you'll need to close the window and run the script again
+- This is because Windows needs to update environment variables after Node.js installation
 
 ### macOS
 - Open Terminal
@@ -44,7 +46,10 @@ The setup script will:
 
 If you encounter issues:
 
-1. **"Cannot find module" errors**: Try running the script again. The first run may sometimes fail if Node.js was just installed.
+1. **"electron is not recognized" or "Cannot find module" errors**:
+   - Windows: Make sure to run the script again after Node.js installation completes
+   - Try running `npm install electron --save-dev` manually in the application directory
+   - Run the script again after installation completes
 
 2. **Permission issues**:
    - Windows: Try running the batch file as administrator
@@ -59,3 +64,13 @@ If you encounter issues:
    - Make sure your computer and phone are connected to the internet
    - Try restarting the application
    - Ensure your WhatsApp mobile app is up to date
+
+5. **Windows-specific issues**:
+   - If you see "not recognized as an internal or external command", close the command prompt window and run the script again
+   - Windows may need to restart the command prompt to recognize newly installed programs
+   - If the issue persists, try running the following commands manually in the application directory:
+     ```
+     npm install
+     npm install electron --save-dev
+     npx electron .
+     ```
