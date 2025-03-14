@@ -593,6 +593,31 @@
                   <span style="margin-left: 8px;">Auto-reply to all chats (override individual settings)</span>
                 </div>
                 
+                <div class="settings-field" style="border: 2px dashed #1976d2; padding: 16px; border-radius: 4px; margin-top: 16px;">
+                  <label style="color: #1976d2; font-weight: bold;">Reply Delay Settings</label>
+                  <select id="reply-delay" style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; border: 1px solid #555; background-color: #333; color: white;">
+                    <option value="instant" ${appSettings.replyDelay === 'instant' ? 'selected' : ''}>Instant Reply</option>
+                    <option value="fixed" ${appSettings.replyDelay === 'fixed' ? 'selected' : ''}>Fixed Delay</option>
+                    <option value="random" ${appSettings.replyDelay === 'random' ? 'selected' : ''}>Random Delay</option>
+                  </select>
+                  <p class="field-hint">Controls how the assistant delays responses to seem more human-like</p>
+                  
+                  <div id="fixed-delay-settings" style="margin-top: 10px; ${appSettings.replyDelay === 'fixed' ? '' : 'display: none;'}">
+                    <label>Fixed Delay: <span id="fixed-delay-value">${appSettings.fixedDelaySeconds || 0}</span> seconds</label>
+                    <input type="range" id="fixed-delay-seconds" min="0" max="30" step="1" value="${appSettings.fixedDelaySeconds || 0}">
+                    <p class="field-hint">Wait this many seconds before sending each auto-reply</p>
+                  </div>
+                  
+                  <div id="random-delay-settings" style="margin-top: 10px; ${appSettings.replyDelay === 'random' ? '' : 'display: none;'}">
+                    <label>Minimum Delay: <span id="min-delay-value">${appSettings.minDelaySeconds || 0}</span> seconds</label>
+                    <input type="range" id="min-delay-seconds" min="0" max="30" step="1" value="${appSettings.minDelaySeconds || 0}">
+                    
+                    <label style="margin-top: 10px; display: block;">Maximum Delay: <span id="max-delay-value">${appSettings.maxDelaySeconds || 10}</span> seconds</label>
+                    <input type="range" id="max-delay-seconds" min="1" max="60" step="1" value="${appSettings.maxDelaySeconds || 10}">
+                    <p class="field-hint">Wait a random amount of time between min and max seconds before sending each auto-reply</p>
+                  </div>
+                </div>
+                
                 <div class="settings-field">
                   <label class="switch">
                     <input type="checkbox" id="debug-mode" ${appSettings.debugMode ? 'checked' : ''}>
@@ -699,6 +724,9 @@
             });
           }
           
+          // Setup delay settings handlers
+          setupDelaySettingsHandlers();
+          
           // Add event listeners for temperature and history sliders
           const temperatureSlider = document.getElementById('temperature');
           if (temperatureSlider) {
@@ -752,12 +780,65 @@
         autoReplyToAll: document.getElementById('auto-reply-all')?.checked || false,
         debugMode: document.getElementById('debug-mode')?.checked || false,
         theme: document.getElementById('theme')?.value || 'system',
-        mediaDownloadPath: document.getElementById('media-download-path')?.value || ''
+        mediaDownloadPath: document.getElementById('media-download-path')?.value || '',
+        // Add delay settings
+        replyDelay: document.getElementById('reply-delay')?.value || 'instant',
+        fixedDelaySeconds: parseInt(document.getElementById('fixed-delay-seconds')?.value || '3'),
+        minDelaySeconds: parseInt(document.getElementById('min-delay-seconds')?.value || '2'),
+        maxDelaySeconds: parseInt(document.getElementById('max-delay-seconds')?.value || '10')
       };
       
       window.api.settings.setAppSettings(settings).then(() => {
         showMessage('Application settings saved successfully');
       });
+    }
+    
+    // Handle delay type selection changes
+    function setupDelaySettingsHandlers() {
+      const replyDelaySelect = document.getElementById('reply-delay');
+      if (replyDelaySelect) {
+        replyDelaySelect.addEventListener('change', (e) => {
+          const value = e.target.value;
+          const fixedSettings = document.getElementById('fixed-delay-settings');
+          const randomSettings = document.getElementById('random-delay-settings');
+          
+          if (value === 'fixed') {
+            fixedSettings.style.display = 'block';
+            randomSettings.style.display = 'none';
+          } else if (value === 'random') {
+            fixedSettings.style.display = 'none';
+            randomSettings.style.display = 'block';
+          } else {
+            fixedSettings.style.display = 'none';
+            randomSettings.style.display = 'none';
+          }
+        });
+      }
+      
+      // Setup slider value display updates
+      const fixedSlider = document.getElementById('fixed-delay-seconds');
+      const fixedValue = document.getElementById('fixed-delay-value');
+      if (fixedSlider && fixedValue) {
+        fixedSlider.addEventListener('input', () => {
+          fixedValue.textContent = fixedSlider.value;
+        });
+      }
+      
+      const minSlider = document.getElementById('min-delay-seconds');
+      const minValue = document.getElementById('min-delay-value');
+      if (minSlider && minValue) {
+        minSlider.addEventListener('input', () => {
+          minValue.textContent = minSlider.value;
+        });
+      }
+      
+      const maxSlider = document.getElementById('max-delay-seconds');
+      const maxValue = document.getElementById('max-delay-value');
+      if (maxSlider && maxValue) {
+        maxSlider.addEventListener('input', () => {
+          maxValue.textContent = maxSlider.value;
+        });
+      }
     }
     
     // Save LLM settings

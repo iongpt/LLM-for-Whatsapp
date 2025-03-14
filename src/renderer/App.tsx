@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Alert, CssBaseline, Drawer, AppBar, Toolbar, Typography, Divider } from '@mui/material';
 import QRCodeView from './components/QRCodeView';
 import ChatsList from './components/ChatsList';
@@ -54,6 +54,9 @@ const App: React.FC = () => {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [selectedChatMessages, setSelectedChatMessages] = useState<ChatMessage[]>([]);
   
+  // References
+  const chatViewRef = useRef<any>(null);
+  
   useEffect(() => {
     // Set up event listeners for WhatsApp connection
     const qrUnsubscribe = window.api.whatsapp.onQRCode((qrCode: string) => {
@@ -107,6 +110,22 @@ const App: React.FC = () => {
             return [...prev, data.message];
           }
         });
+        
+        // If this is an LLM response, turn off the typing indicator
+        if (data.message.isLLMResponse) {
+          if (chatViewRef.current?.setIsTyping) {
+            chatViewRef.current.setIsTyping(false);
+          }
+        }
+      }
+      
+      // If we receive a message from someone else to the currently selected chat, 
+      // and the auto-reply is enabled for this chat, show the typing indicator
+      const chat = chats.find(c => c.id === data.chatId);
+      if (data.chatId === selectedChatId && !data.message.fromMe && chat?.autoReplyEnabled) {
+        if (chatViewRef.current?.setIsTyping) {
+          chatViewRef.current.setIsTyping(true);
+        }
       }
     });
     
@@ -214,6 +233,7 @@ const App: React.FC = () => {
             <Box component="main" sx={{ flexGrow: 1, p: 3, height: 'calc(100vh - 64px)' }}>
               {selectedChatId ? (
                 <ChatView 
+                  ref={chatViewRef}
                   chatId={selectedChatId}
                   messages={selectedChatMessages}
                   onSendMessage={handleSendMessage}

@@ -64,6 +64,10 @@ export interface AppSettings {
   debugMode: boolean;
   mediaDownloadPath: string;
   startupOnBoot: boolean;
+  replyDelay: 'instant' | 'fixed' | 'random';
+  fixedDelaySeconds: number;
+  minDelaySeconds: number;
+  maxDelaySeconds: number;
 }
 
 // IPC Channel definitions

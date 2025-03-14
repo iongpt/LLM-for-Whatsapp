@@ -28,16 +28,17 @@ interface TabPanelProps {
   value: number;
 }
 
-const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
+const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other }) => {
   return (
     <div
       role="tabpanel"
       hidden={value !== index}
       id={`settings-tabpanel-${index}`}
       aria-labelledby={`settings-tab-${index}`}
+      {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 3, maxHeight: '80vh', overflow: 'auto' }}>
           {children}
         </Box>
       )}
@@ -224,8 +225,8 @@ const SettingsView: React.FC = () => {
   }
   
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
-      <Paper sx={{ width: '100%', height: '100%' }}>
+    <Box sx={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+      <Paper sx={{ width: '100%', height: '100%', overflow: 'auto', maxHeight: '100vh' }}>
         <Tabs 
           value={tabValue} 
           onChange={handleTabChange}
@@ -237,8 +238,8 @@ const SettingsView: React.FC = () => {
         
         {/* Application Settings Tab */}
         <TabPanel value={tabValue} index={0}>
-          <Typography variant="h6" gutterBottom>
-            Application Settings
+          <Typography variant="h6" gutterBottom sx={{ color: 'red', fontWeight: 'bold' }}>
+            APPLICATION SETTINGS - UPDATED VERSION
           </Typography>
           
           <Box sx={{ mt: 3 }}>
@@ -275,6 +276,82 @@ const SettingsView: React.FC = () => {
               }
               label="Auto-reply to all chats (override individual settings)"
             />
+          </Box>
+          
+          <Box sx={{ mt: 4, border: '2px dashed #1976d2', padding: 2, borderRadius: 1 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ color: '#1976d2', fontWeight: 'bold' }}>
+              Reply Delay Settings
+            </Typography>
+            <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
+              <InputLabel id="reply-delay-label">Reply Delay Mode</InputLabel>
+              <Select
+                labelId="reply-delay-label"
+                value={appSettings.replyDelay || 'instant'}
+                label="Reply Delay Mode"
+                onChange={(e) => updateAppSetting('replyDelay', e.target.value as 'instant' | 'fixed' | 'random')}
+              >
+                <MenuItem value="instant">Instant Reply</MenuItem>
+                <MenuItem value="fixed">Fixed Delay</MenuItem>
+                <MenuItem value="random">Random Delay</MenuItem>
+              </Select>
+              <FormHelperText>Controls how the assistant delays responses to seem more human-like</FormHelperText>
+            </FormControl>
+          
+            {appSettings.replyDelay === 'fixed' && (
+              <Box sx={{ mt: 2, display: 'block' }}>
+                <Typography gutterBottom>
+                  Fixed Delay: {appSettings.fixedDelaySeconds || 0} seconds
+                </Typography>
+                <Slider
+                  value={appSettings.fixedDelaySeconds || 0}
+                  onChange={(_, value) => updateAppSetting('fixedDelaySeconds', value as number)}
+                  step={1}
+                  marks
+                  min={0}
+                  max={30}
+                  valueLabelDisplay="auto"
+                />
+                <FormHelperText>
+                  Wait this many seconds before sending each auto-reply
+                </FormHelperText>
+              </Box>
+            )}
+            
+            {appSettings.replyDelay === 'random' && (
+              <>
+                <Box sx={{ mt: 2, display: 'block' }}>
+                  <Typography gutterBottom>
+                    Minimum Delay: {appSettings.minDelaySeconds || 0} seconds
+                  </Typography>
+                  <Slider
+                    value={appSettings.minDelaySeconds || 0}
+                    onChange={(_, value) => updateAppSetting('minDelaySeconds', value as number)}
+                    step={1}
+                    marks
+                    min={0}
+                    max={30}
+                    valueLabelDisplay="auto"
+                  />
+                </Box>
+                <Box sx={{ mt: 2, display: 'block' }}>
+                  <Typography gutterBottom>
+                    Maximum Delay: {appSettings.maxDelaySeconds || 10} seconds
+                  </Typography>
+                  <Slider
+                    value={appSettings.maxDelaySeconds || 10}
+                    onChange={(_, value) => updateAppSetting('maxDelaySeconds', value as number)}
+                    step={1}
+                    marks
+                    min={1}
+                    max={60}
+                    valueLabelDisplay="auto"
+                  />
+                  <FormHelperText>
+                    Wait a random amount of time between min and max seconds before sending each auto-reply
+                  </FormHelperText>
+                </Box>
+              </>
+            )}
           </Box>
           
           <Box sx={{ mt: 2 }}>
@@ -327,7 +404,7 @@ const SettingsView: React.FC = () => {
               }
               label="Debug Mode"
             />
-            <FormHelperText>Enable detailed logging for troubleshooting</FormHelperText>
+            <FormHelperText>Toggle developer tools and enable detailed logging</FormHelperText>
           </Box>
           
           <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
@@ -347,6 +424,17 @@ const SettingsView: React.FC = () => {
               startIcon={loggingOut ? <CircularProgress size={20} color="error" /> : undefined}
             >
               {loggingOut ? 'Logging Out...' : 'Logout from WhatsApp'}
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              color="secondary"
+              onClick={() => {
+                console.log('Current app settings:', appSettings);
+                alert(JSON.stringify(appSettings, null, 2));
+              }}
+            >
+              Debug Settings
             </Button>
           </Box>
         </TabPanel>

@@ -5,6 +5,7 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import Store from 'electron-store';
 import { generateLLMResponse } from './llm';
+import { AppSettings } from '../shared/types';
 
 // Define channel constants directly here
 const IPCChannels = {
@@ -340,6 +341,32 @@ async function updateChatWithMessage(message: Message) {
   sendChatListUpdate();
 }
 
+// Helper function to apply a delay based on settings
+async function applyReplyDelay() {
+  const settings = settingsStore.store as unknown as AppSettings;
+  let delayMs = 0;
+  
+  switch (settings.replyDelay) {
+    case 'fixed':
+      delayMs = (settings.fixedDelaySeconds || 0) * 1000;
+      break;
+    case 'random':
+      const minMs = (settings.minDelaySeconds || 0) * 1000;
+      const maxMs = (settings.maxDelaySeconds || 10) * 1000;
+      delayMs = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+      break;
+    case 'instant':
+    default:
+      delayMs = 0;
+      break;
+  }
+  
+  if (delayMs > 0) {
+    console.log(`Delaying response by ${delayMs}ms`);
+    return new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+}
+
 // Generate and send auto-reply
 async function generateAndSendAutoReply(message: Message) {
   try {
@@ -365,6 +392,9 @@ async function generateAndSendAutoReply(message: Message) {
     }
     
     console.log(`LLM generated response: ${response}`);
+    
+    // Apply delay before sending the message
+    await applyReplyDelay();
     
     // Send response - the message_create event will handle marking as LLM response
     await sendMessage(chatId, response);

@@ -8,10 +8,12 @@ import {
   Divider, 
   Avatar,
   Tooltip,
-  Badge
+  Badge,
+  CircularProgress
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { Chat, ChatMessage } from '../../shared/types';
 
 interface ChatViewProps {
@@ -21,14 +23,25 @@ interface ChatViewProps {
   chat?: Chat;
 }
 
-const ChatView: React.FC<ChatViewProps> = ({ 
+interface ChatViewState {
+  isTyping: boolean;
+}
+
+const ChatView = React.forwardRef<ChatViewState, ChatViewProps>(({ 
   chatId, 
   messages, 
   onSendMessage,
   chat 
-}) => {
+}, ref) => {
   const [messageText, setMessageText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Expose isTyping state to parent components
+  React.useImperativeHandle(ref, () => ({
+    isTyping,
+    setIsTyping
+  }));
   
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -280,6 +293,32 @@ const ChatView: React.FC<ChatViewProps> = ({
             </Box>
           ))
         )}
+        {/* Typing indicator */}
+        {isTyping && (
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2, ml: 2 }}>
+            <Avatar sx={{ width: 32, height: 32, mr: 1, mt: 1 }}>
+              {chat?.name.charAt(0) || '?'}
+            </Avatar>
+            <Paper 
+              sx={{ 
+                p: 1.5, 
+                bgcolor: 'background.paper',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center'
+              }}
+              elevation={1}
+            >
+              <CircularProgress size={16} sx={{ mr: 1 }} />
+              <Typography 
+                variant="body2" 
+                sx={{ fontStyle: 'italic', color: 'text.secondary' }}
+              >
+                Typing...
+              </Typography>
+            </Paper>
+          </Box>
+        )}
         <div ref={messagesEndRef} />
       </Box>
       
@@ -310,6 +349,6 @@ const ChatView: React.FC<ChatViewProps> = ({
       </Paper>
     </Box>
   );
-};
+});
 
 export default ChatView;

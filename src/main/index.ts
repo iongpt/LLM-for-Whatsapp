@@ -32,6 +32,10 @@ interface AppSettings {
   debugMode: boolean;
   mediaDownloadPath: string;
   startupOnBoot: boolean;
+  replyDelay: 'instant' | 'fixed' | 'random';
+  fixedDelaySeconds: number;
+  minDelaySeconds: number;
+  maxDelaySeconds: number;
 }
 
 interface LLMSettings {
@@ -52,7 +56,11 @@ const defaultAppSettings: AppSettings = {
   autoReplyToAll: false,
   debugMode: false,
   mediaDownloadPath: path.join(app.getPath('downloads'), 'WhatsAppMedia'),
-  startupOnBoot: false
+  startupOnBoot: false,
+  replyDelay: 'instant',
+  fixedDelaySeconds: 3,
+  minDelaySeconds: 2,
+  maxDelaySeconds: 10
 };
 
 const defaultLLMSettings: LLMSettings = {
@@ -88,18 +96,20 @@ async function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,  // Enable context isolation for preload to work
       preload: path.join(__dirname, 'preload.js'),
-      devTools: false // Always enable DevTools
+      devTools: false 
     },
     icon: path.join(__dirname, '../../assets/icon/icon.png'),
     show: !settingsStore.store.startMinimized
   });
 
   // Load the renderer
-  // Always open DevTools to debug
-  mainWindow.webContents.openDevTools();
+  // Only open DevTools if debug mode is enabled
+  if (settingsStore.store.debugMode) {
+    mainWindow.webContents.openDevTools();
+  }
   
   try {
-    console.log('Loading renderer from file path:', path.join(__dirname, '../renderer/index.html'));
+    console.log('⚠️ USING UPDATED CODE - Loading renderer from file path:', path.join(__dirname, '../renderer/index.html'));
     await mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
     console.log('Renderer loaded successfully');
   } catch (error) {
@@ -184,8 +194,19 @@ ipcMain.handle(IPCChannels.APP_SETTINGS_GET, () => {
 });
 
 ipcMain.handle(IPCChannels.APP_SETTINGS_SET, (_, settings: Partial<AppSettings>) => {
-  const updatedSettings = { ...settingsStore.store, ...settings };
+  const prevSettings = { ...settingsStore.store };
+  const updatedSettings = { ...prevSettings, ...settings };
   settingsStore.store = updatedSettings;
+  
+  // Toggle DevTools based on debugMode change
+  if (mainWindow && 'debugMode' in settings && prevSettings.debugMode !== settings.debugMode) {
+    if (settings.debugMode) {
+      mainWindow.webContents.openDevTools();
+    } else {
+      mainWindow.webContents.closeDevTools();
+    }
+  }
+  
   return updatedSettings;
 });
 
