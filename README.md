@@ -10,7 +10,18 @@ WhatsApp client with LLM-powered auto-replies for Mac, Windows, and Linux.
 - **Multi-Platform Support**: Works on Windows, macOS, and Linux
 - **Message History**: Maintains conversation context for more coherent responses
 
-## Installation
+## Installation - Quick Setup (Recommended)
+
+1. Download the latest `release.zip` file from the [Releases page](https://github.com/iongpt/LLM-for-Whatsapp/releases)
+2. Extract the contents of the ZIP file to any location on your computer
+3. Run the appropriate script for your operating system:
+   - Windows: Double-click `run-windows.bat`
+   - macOS: Run `./run-mac.sh` in Terminal
+   - Linux: Run `./run-linux.sh` in Terminal
+
+For detailed installation instructions, see the included `install_instructions.md` file.
+
+## Installation - Manual Setup (For Developers)
 
 ### Prerequisites
 - Node.js
