@@ -86,7 +86,27 @@ const App: React.FC = () => {
     // Message listener
     const messageUnsubscribe = window.api.whatsapp.onMessage((data: { chatId: string, message: ChatMessage }) => {
       if (data.chatId === selectedChatId) {
-        setSelectedChatMessages(prev => [...prev, data.message]);
+        // Check if this is a message we've already added to UI (to prevent duplicates)
+        setSelectedChatMessages(prev => {
+          // Check if there's a temporary message with the same content
+          const duplicateIndex = prev.findIndex(msg => 
+            msg.body === data.message.body && 
+            msg.fromMe === data.message.fromMe &&
+            // Allow for small timestamp differences (5 second window)
+            Math.abs(msg.timestamp - data.message.timestamp) < 5000 &&
+            msg.id.startsWith('temp-')
+          );
+          
+          if (duplicateIndex >= 0) {
+            // Replace the temporary message with the real one
+            const newMessages = [...prev];
+            newMessages[duplicateIndex] = data.message;
+            return newMessages;
+          } else {
+            // No duplicate found, add as new message
+            return [...prev, data.message];
+          }
+        });
       }
     });
     
@@ -128,6 +148,22 @@ const App: React.FC = () => {
     if (!selectedChatId || !text.trim()) return;
     
     try {
+      // Create a temporary message object to add to UI immediately
+      const tempMessage: ChatMessage = {
+        id: `temp-${Date.now()}`,
+        body: text,
+        fromMe: true,
+        timestamp: Date.now(),
+        hasMedia: false,
+        isForwarded: false,
+        isStarred: false,
+        isLLMResponse: false
+      };
+      
+      // Add to UI
+      setSelectedChatMessages(prev => [...prev, tempMessage]);
+      
+      // Send the actual message
       const success = await window.api.chats.sendMessage(selectedChatId, text);
       if (!success) {
         console.error('Failed to send message');
