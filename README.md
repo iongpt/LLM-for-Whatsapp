@@ -2,6 +2,19 @@
 
 WhatsApp client with LLM-powered auto-replies for Mac, Windows, and Linux.
 
+## Get Started in Minutes
+
+**Just want to run the app?** Here's how:
+
+1. **[Download release.zip](https://github.com/iongpt/LLM-for-Whatsapp/releases/latest/download/release.zip)** - Get the latest version directly
+2. **Extract** the zip file anywhere on your computer
+3. **Run** the script for your system:
+   - **Windows**: Double-click `run-windows.bat` 
+   - **Mac**: Open Terminal, navigate to folder, run `chmod +x run-mac.sh && ./run-mac.sh`
+   - **Linux**: Open Terminal, navigate to folder, run `chmod +x run-linux.sh && ./run-linux.sh`
+
+That's it! The script will install everything needed and launch the app.
+
 ## Key Features
 
 - **Interactive LLM Integration**: Choose between OpenAI's GPT, local models via Ollama, or other custom LLM APIs
