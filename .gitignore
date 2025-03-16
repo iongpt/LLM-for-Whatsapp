@@ -792,3 +792,5 @@ dist/
 /new-build/.wwebjs_auth/session/Default/Local Storage/leveldb/LOG
 /new-build/.wwebjs_auth/session/Default/Local Storage/leveldb/MANIFEST-000001
 /.wwebjs_auth/session-whatsapp-llm-assistant/Default/Sessions/Tabs_13386198452162073
+.DS_Store
+**/.DS_Store
