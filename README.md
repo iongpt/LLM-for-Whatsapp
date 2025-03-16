@@ -15,9 +15,18 @@ WhatsApp client with LLM-powered auto-replies for Mac, Windows, and Linux.
 1. Download the latest `release.zip` file from the [Releases page](https://github.com/iongpt/LLM-for-Whatsapp/releases)
 2. Extract the contents of the ZIP file to any location on your computer
 3. Run the appropriate script for your operating system:
-   - Windows: Double-click `run-windows.bat`
-   - macOS: Run `./run-mac.sh` in Terminal
-   - Linux: Run `./run-linux.sh` in Terminal
+   - **Windows**: Double-click `run-windows.bat`
+     - If Node.js is installed during setup, you'll need to close and run the script again
+   - **macOS**: 
+     - Open Terminal
+     - Navigate to the extracted folder: `cd path/to/extracted/folder`
+     - Make the script executable: `chmod +x run-mac.sh`
+     - Run the script: `./run-mac.sh`
+   - **Linux**: 
+     - Open Terminal
+     - Navigate to the extracted folder: `cd path/to/extracted/folder`
+     - Make the script executable: `chmod +x run-linux.sh`
+     - Run the script: `./run-linux.sh`
 
 For detailed installation instructions, see the included `install_instructions.md` file.
 
@@ -37,15 +46,27 @@ cd LLM-for-Whatsapp
 
 2. Install dependencies
 ```
+npm install
+```
+or if you prefer yarn:
+```
 yarn install
 ```
 
 3. Build the application
 ```
+npm run build
+```
+or if you prefer yarn:
+```
 yarn build
 ```
 
 4. Start the application
+```
+npm run start
+```
+or if you prefer yarn:
 ```
 yarn start
 ```
@@ -81,31 +102,47 @@ To build for your platform:
 
 ```
 # For all platforms
-yarn package:all
+npm run package:all
 
 # For Windows
-yarn package:win
+npm run package:win
 
 # For macOS
-yarn package:mac
+npm run package:mac
 
 # For Linux
-yarn package:linux
+npm run package:linux
 ```
 
 ## Development
 
 ```
 # Run in development mode with auto-reload
-yarn dev
+npm run dev
 
 # Run linting
-yarn lint
+npm run lint
 ```
+
+You can also use `yarn` instead of `npm run` for all the commands above if you prefer.
 
 ## Customizing LLM Integration
 
 For details on integrating custom LLM backends, check out our [custom_LLM.md](custom_LLM.md) guide.
+
+## Utility Scripts
+
+Several utility scripts are included to help with troubleshooting:
+
+- **apply-settings.js**: Applies all necessary settings for reply delay features
+- **fix-settings.js**: Fixes issues with default settings
+- **debug-settings.js**: Creates a debug window to inspect current settings
+- **troubleshoot/inspect-settings.js**: Inspects and modifies settings files
+
+To run these scripts:
+```
+node apply-settings.js
+```
 
 ## Disclaimer
 
