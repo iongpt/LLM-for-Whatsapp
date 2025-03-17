@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+  <title>WhatsApp LLM Assistant</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      color: white;
+      background-color: #121212;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #1976d2;
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    nav {
+      display: flex;
+      gap: 16px;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 8px;
+    }
+    nav button.active {
+      border-bottom: 2px solid white;
+    }
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 300px;
+      border-right: 1px solid #333;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .chat-item {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+      cursor: pointer;
+    }
+    .chat-item:hover {
+      background-color: #333;
+    }
+    .chat-item.selected {
+      background-color: #1e1e1e;
+    }
+    .chat-name {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .last-message {
+      color: #aaa;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .chat-header {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .message {
+      max-width: 70%;
+      padding: 10px;
+      border-radius: 8px;
+      position: relative;
+    }
+    .from-me {
+      align-self: flex-end;
+      background-color: #0b7dda;
+    }
+    .from-them {
+      align-self: flex-start;
+      background-color: #333;
+    }
+    .message-input {
+      padding: 16px;
+      border-top: 1px solid #333;
+      display: flex;
+      gap: 8px;
+    }
+    .message-input input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #555;
+      background-color: #333;
+      color: white;
+    }
+    .message-input button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    .message-input button:hover {
+      background-color: #0b5aa2;
+    }
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 20px;
+    }
+    .welcome h2 {
+      margin-bottom: 16px;
+      color: #ccc;
+    }
+    .welcome p {
+      max-width: 500px;
+      color: #aaa;
+    }
+    .qr-code {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 20px;
+      background-color: #f0f2f5;
+    }
+    .qr-code h2 {
+      margin-bottom: 16px;
+      font-size: 24px;
+      color: #128C7E; /* WhatsApp green */
+    }
+    .qr-code-box {
+      background-color: white;
+      padding: 10px;
+      border-radius: 16px;
+      margin: 20px 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    .qr-code-box:hover {
+      transform: scale(1.02);
+    }
+    .qr-code p {
+      max-width: 500px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .qr-code img {
+      image-rendering: pixelated; /* Better QR code rendering */
+    }
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .loading-spinner {
+      border: 4px solid #333;
+      border-top: 4px solid #1976d2;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .auto-reply-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .settings {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .settings h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .settings-section {
+      margin-bottom: 30px;
+    }
+    .settings-field {
+      margin-bottom: 16px;
+    }
+    .settings-field label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    .settings-field input, .settings-field select, .settings-field textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #555;
+      background-color: #333;
+      color: white;
+    }
+    .settings-field textarea {
+      min-height: 100px;
+    }
+    .settings-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .settings-buttons button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+    .settings-buttons button.primary {
+      background-color: #1976d2;
+      color: white;
+    }
+    .settings-buttons button.secondary {
+      background-color: #444;
+      color: white;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #333;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #1976d2;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    .tab-buttons {
+      display: flex;
+      border-bottom: 1px solid #333;
+    }
+    .tab-button {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+    }
+    .tab-button.active {
+      border-bottom: 2px solid #1976d2;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <!-- Fallback static HTML for when React isn't working -->
+    <header>
+      <h1>WhatsApp LLM Assistant</h1>
+      <nav>
+        <button class="active">Chats</button>
+        <button>Settings</button>
+      </nav>
+    </header>
+    <main>
+      <div class="qr-code">
+        <h2>Connect to WhatsApp</h2>
+        <p style="color: #333333; font-weight: 500;">To use WhatsApp LLM Assistant, scan a QR code with your phone's WhatsApp app.</p>
+        
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p style="font-weight: bold; margin-top: 16px; color: #333333;">Initializing WhatsApp...</p>
+          <p style="color: #666;">This may take a few seconds</p>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background-color: #EAF7F2; border-radius: 12px; max-width: 600px;">
+          <h3 style="color: #128C7E; margin-bottom: 10px;">How It Works</h3>
+          <p style="text-align: left; margin-bottom: 10px; color: #333333; font-weight: 500;">1. Scan the QR code with your phone</p>
+          <p style="text-align: left; margin-bottom: 10px; color: #333333; font-weight: 500;">2. Select chats for LLM auto-replies</p>
+          <p style="text-align: left; margin-bottom: 10px; color: #333333; font-weight: 500;">3. Configure your LLM settings in the app</p>
+          <p style="text-align: left; font-style: italic; color: #666; margin-top: 20px;">
+            Your WhatsApp session runs securely in the background.<br>
+            All messages remain encrypted and private.
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Directly implement a simple QR code handler with vanilla JS -->
+  <script>
+    // Simple app to display and handle a QR code
+    const root = document.getElementById('root');
+    const navBtns = document.querySelectorAll('nav button');
+    let qrCodeInterval = null;
+    
+    // Basic navigation
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        if (btn.textContent === 'Settings') {
+          // Save current tab state
+          window.currentTab = 'settings';
+          showSettings();
+        } else {
+          // Switch to chats tab and restore chat list
+          window.currentTab = 'chats';
+          showChats();
+          // Force refresh chat list if we've already loaded chats before
+          if (window.chatListLoaded) {
+            // Request latest chat list from main process
+            if (window.api && window.api.chats) {
+              console.log("Requesting chat list refresh...");
+              window.setTimeout(() => {
+                // We need to make sure the chat-list element exists before updating
+                const chatList = document.getElementById('chat-list');
+                if (chatList) {
+                  chatList.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Refreshing chats...</p></div>';
+                  // Explicitly ask main process to send the latest chat list
+                  window.api.chats.refreshChats();
+                }
+              }, 100);
+            }
+          }
+        }
+      });
+    });
+    
+    // Initialize listeners when the window API is ready
+    function initialize() {
+      if (window.api) {
+        console.log("API ready, setting up listeners");
+        
+        // Set initial tab state
+        window.currentTab = 'chats';
+        window.chatListLoaded = false;
+        
+        // Set up WhatsApp listeners
+        window.api.whatsapp.onQRCode((qrCode) => {
+          console.log("QR code received in UI");
+          showQRCode(qrCode);
+        });
+        
+        window.api.whatsapp.onReady(() => {
+          console.log("WhatsApp ready event received");
+          showChats();
+        });
+        
+        window.api.whatsapp.onAuthFailure((message) => {
+          console.error("Auth failure:", message);
+          showError(`Authentication failed: ${message}`);
+        });
+        
+        window.api.whatsapp.onDisconnected((reason) => {
+          console.error("Disconnected:", reason);
+          showError(`Disconnected: ${reason}`);
+        });
+        
+        // Handle incoming messages
+        window.api.whatsapp.onMessage((data) => {
+          console.log("Message received:", data);
+          
+          // Only update UI if we're currently viewing the chat where the message belongs
+          const currentChat = document.querySelector('.chat-view')?.getAttribute('data-chat-id');
+          
+          if (currentChat === data.chatId) {
+            // Add the message to the chat view
+            const messagesContainer = document.getElementById('messages');
+            if (messagesContainer) {
+              const message = data.message;
+              
+              // Create message element
+              const messageEl = document.createElement('div');
+              messageEl.className = `message ${message.fromMe ? 'from-me' : 'from-them'}`;
+              
+              // Format timestamp
+              const date = new Date(message.timestamp);
+              const timeStr = date.getHours().toString().padStart(2, '0') + ':' + 
+                            date.getMinutes().toString().padStart(2, '0');
+              
+              // Add message content
+              messageEl.innerHTML = `
+                <div>${message.body}</div>
+                <div style="font-size: 10px; text-align: right; margin-top: 4px;">
+                  ${timeStr}
+                  ${message.isLLMResponse ? ' 🤖' : ''}
+                </div>
+              `;
+              
+              // Add to container and scroll to bottom
+              messagesContainer.appendChild(messageEl);
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+          }
+        });
+        
+        window.api.chats.onListUpdate((chats) => {
+          console.log(`Chat list update received: ${chats.length} chats`);
+          updateChatsList(chats);
+        });
+      } else {
+        // If API isn't available yet, try again in a second
+        console.log("API not available yet, retrying...");
+        setTimeout(initialize, 1000);
+      }
+    }
+    
+    // Show QR code
+    function showQRCode(qrCodeData) {
+      const qrCodeBox = document.querySelector('.loading');
+      if (qrCodeBox && qrCodeData) {
+        console.log("Received QR code, displaying...");
+        
+        // Replace loading spinner with actual QR code
+        // The QR code is now a full data URL, no need to add the data:image/png;base64 prefix
+        qrCodeBox.innerHTML = `
+          <div class="qr-code-box">
+            <img src="${qrCodeData}" alt="QR Code" width="300" height="300" style="margin: 20px; border-radius: 10px;" />
+          </div>
+          <p style="margin-top: 16px; font-weight: bold; font-size: 16px; color: #333333;">Scan this code with your phone's WhatsApp</p>
+          <p style="margin-top: 8px; color: #555555;">Open WhatsApp > Menu > Linked Devices > Link a Device</p>
+          <p style="margin-top: 16px; color: #666666;">WhatsApp Web is running in the background</p>
+        `;
+      } else {
+        console.log("Received empty QR code or container not found");
+      }
+    }
+    
+    // Show chats
+    function showChats() {
+      console.log("Show chats view");
+      
+      // Save current active chat ID if any
+      const activeChat = document.querySelector('.chat-view')?.getAttribute('data-chat-id');
+      
+      // Get the main element to replace content
+      const main = document.querySelector('main');
+      
+      // Create a chat sidebar and chat view
+      main.innerHTML = `
+        <div class="sidebar">
+          <div class="chat-list" id="chat-list">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              <p>Loading chats...</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-view" id="chat-view">
+          <div class="welcome">
+            <h2>Welcome to WhatsApp LLM Assistant</h2>
+            <p>Select a chat to start messaging with LLM assistance.</p>
+            <p>Toggle auto-reply for chats where you want the AI to respond automatically.</p>
+          </div>
+        </div>
+      `;
+      
+      // If there was an active chat, reload it
+      if (activeChat && window.api) {
+        console.log("Reloading previously active chat:", activeChat);
+        setTimeout(() => loadChat(activeChat), 100);
+      }
+    }
+    
+    // Show settings
+    function showSettings() {
+      console.log("Show settings view");
+      
+      // Get the main element to replace content
+      const main = document.querySelector('main');
+      
+      // Show loading first
+      main.innerHTML = `
+        <div class="settings">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading settings...</p>
+          </div>
+        </div>
+      `;
+      
+      // Load the settings
+      if (window.api) {
+        Promise.all([
+          window.api.settings.getAppSettings(),
+          window.api.settings.getLLMSettings()
+        ]).then(([appSettings, llmSettings]) => {
+          // Create settings interface
+          main.innerHTML = `
+            <div class="settings">
+              <div class="tab-buttons">
+                <button class="tab-button active" onclick="showSettingsTab('app')">Application</button>
+                <button class="tab-button" onclick="showSettingsTab('llm')">LLM Configuration</button>
+              </div>
+              
+              <div id="app-settings" class="settings-section">
+                <h2>Application Settings</h2>
+                
+                <div class="settings-field">
+                  <label class="switch">
+                    <input type="checkbox" id="start-minimized" ${appSettings.startMinimized ? 'checked' : ''}>
+                    <span class="slider"></span>
+                  </label>
+                  <span style="margin-left: 8px;">Start application minimized</span>
+                </div>
+                
+                <div class="settings-field">
+                  <label class="switch">
+                    <input type="checkbox" id="enable-notifications" ${appSettings.enableNotifications ? 'checked' : ''}>
+                    <span class="slider"></span>
+                  </label>
+                  <span style="margin-left: 8px;">Enable desktop notifications</span>
+                </div>
+                
+                <div class="settings-field">
+                  <label class="switch">
+                    <input type="checkbox" id="auto-reply-all" ${appSettings.autoReplyToAll ? 'checked' : ''}>
+                    <span class="slider"></span>
+                  </label>
+                  <span style="margin-left: 8px;">Auto-reply to all chats (override individual settings)</span>
+                </div>
+                
+                <div class="settings-field" style="border: 2px dashed #1976d2; padding: 16px; border-radius: 4px; margin-top: 16px;">
+                  <label style="color: #1976d2; font-weight: bold;">Reply Delay Settings</label>
+                  <select id="reply-delay" style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; border: 1px solid #555; background-color: #333; color: white;">
+                    <option value="instant" ${appSettings.replyDelay === 'instant' ? 'selected' : ''}>Instant Reply</option>
+                    <option value="fixed" ${appSettings.replyDelay === 'fixed' ? 'selected' : ''}>Fixed Delay</option>
+                    <option value="random" ${appSettings.replyDelay === 'random' ? 'selected' : ''}>Random Delay</option>
+                  </select>
+                  <p class="field-hint">Controls how the assistant delays responses to seem more human-like</p>
+                  
+                  <div id="fixed-delay-settings" style="margin-top: 10px; ${appSettings.replyDelay === 'fixed' ? '' : 'display: none;'}">
+                    <label>Fixed Delay: <span id="fixed-delay-value">${appSettings.fixedDelaySeconds || 0}</span> seconds</label>
+                    <input type="range" id="fixed-delay-seconds" min="0" max="30" step="1" value="${appSettings.fixedDelaySeconds || 0}">
+                    <p class="field-hint">Wait this many seconds before sending each auto-reply</p>
+                  </div>
+                  
+                  <div id="random-delay-settings" style="margin-top: 10px; ${appSettings.replyDelay === 'random' ? '' : 'display: none;'}">
+                    <label>Minimum Delay: <span id="min-delay-value">${appSettings.minDelaySeconds || 0}</span> seconds</label>
+                    <input type="range" id="min-delay-seconds" min="0" max="30" step="1" value="${appSettings.minDelaySeconds || 0}">
+                    
+                    <label style="margin-top: 10px; display: block;">Maximum Delay: <span id="max-delay-value">${appSettings.maxDelaySeconds || 10}</span> seconds</label>
+                    <input type="range" id="max-delay-seconds" min="1" max="60" step="1" value="${appSettings.maxDelaySeconds || 10}">
+                    <p class="field-hint">Wait a random amount of time between min and max seconds before sending each auto-reply</p>
+                  </div>
+                </div>
+                
+                <div class="settings-field">
+                  <label class="switch">
+                    <input type="checkbox" id="debug-mode" ${appSettings.debugMode ? 'checked' : ''}>
+                    <span class="slider"></span>
+                  </label>
+                  <span style="margin-left: 8px;">Debug Mode</span>
+                </div>
+                
+                <div class="settings-field">
+                  <label>Theme</label>
+                  <select id="theme">
+                    <option value="light" ${appSettings.theme === 'light' ? 'selected' : ''}>Light</option>
+                    <option value="dark" ${appSettings.theme === 'dark' ? 'selected' : ''}>Dark</option>
+                    <option value="system" ${appSettings.theme === 'system' ? 'selected' : ''}>System</option>
+                  </select>
+                </div>
+                
+                <div class="settings-field">
+                  <label>Media Download Path</label>
+                  <input type="text" id="media-download-path" value="${appSettings.mediaDownloadPath}">
+                </div>
+                
+                <div class="settings-buttons">
+                  <button class="primary" onclick="saveAppSettings()">Save Settings</button>
+                </div>
+              </div>
+              
+              <div id="llm-settings" class="settings-section" style="display: none;">
+                <h2>LLM Configuration</h2>
+                
+                <div class="settings-field">
+                  <label>LLM Provider</label>
+                  <select id="llm-provider">
+                    <option value="openai" ${llmSettings.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
+                    <option value="local" ${llmSettings.provider === 'local' ? 'selected' : ''}>Local (Ollama)</option>
+                    <option value="custom" ${llmSettings.provider === 'custom' ? 'selected' : ''}>Custom Endpoint</option>
+                  </select>
+                </div>
+                
+                <div class="settings-field" id="api-key-field" ${llmSettings.provider !== 'openai' ? 'style="display: none;"' : ''}>
+                  <label>OpenAI API Key</label>
+                  <input type="password" id="api-key" value="${llmSettings.apiKey || ''}">
+                </div>
+                
+                <div class="settings-field" id="api-endpoint-field" ${llmSettings.provider === 'openai' ? 'style="display: none;"' : ''}>
+                  <label>API Endpoint</label>
+                  <input type="text" id="api-endpoint" value="${llmSettings.apiEndpoint || ''}">
+                  <p class="field-hint">${llmSettings.provider === 'local' ? 'For Ollama, typically http://localhost:11434/api/generate' : 'Enter the full URL to the API endpoint'}</p>
+                </div>
+                
+                <div class="settings-field">
+                  <label>Model</label>
+                  <input type="text" id="model" value="${llmSettings.model}">
+                  <p class="field-hint">${
+                    llmSettings.provider === 'openai' 
+                      ? "For example: gpt-3.5-turbo, gpt-4" 
+                      : llmSettings.provider === 'local'
+                        ? "For example: llama2, mistral, etc."
+                        : "The model identifier for your custom endpoint"
+                  }</p>
+                </div>
+                
+                <div class="settings-field">
+                  <label>Temperature: ${llmSettings.temperature}</label>
+                  <input type="range" id="temperature" min="0" max="2" step="0.1" value="${llmSettings.temperature}">
+                  <p class="field-hint">Lower values (0-0.3) are more deterministic, higher values (0.7-1.0) are more creative</p>
+                </div>
+                
+                <div class="settings-field">
+                  <label>System Prompt</label>
+                  <textarea id="system-prompt">${llmSettings.systemPrompt}</textarea>
+                  <p class="field-hint">Instructions that define how the AI assistant should behave</p>
+                </div>
+                
+                <div class="settings-field">
+                  <label>Message History Length: ${llmSettings.maxHistoryLength}</label>
+                  <input type="range" id="max-history" min="1" max="20" step="1" value="${llmSettings.maxHistoryLength}">
+                  <p class="field-hint">Number of recent messages to include in conversation context</p>
+                </div>
+                
+                <div class="settings-buttons">
+                  <button class="primary" onclick="saveLLMSettings()">Save Settings</button>
+                  <button class="secondary" onclick="testLLMSettings()">Test Settings</button>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          // Add event listener for provider change
+          const providerSelect = document.getElementById('llm-provider');
+          if (providerSelect) {
+            providerSelect.addEventListener('change', (e) => {
+              const provider = e.target.value;
+              const apiKeyField = document.getElementById('api-key-field');
+              const apiEndpointField = document.getElementById('api-endpoint-field');
+              
+              if (provider === 'openai') {
+                apiKeyField.style.display = 'block';
+                apiEndpointField.style.display = 'none';
+              } else {
+                apiKeyField.style.display = 'none';
+                apiEndpointField.style.display = 'block';
+              }
+            });
+          }
+          
+          // Setup delay settings handlers
+          setupDelaySettingsHandlers();
+          
+          // Add event listeners for temperature and history sliders
+          const temperatureSlider = document.getElementById('temperature');
+          if (temperatureSlider) {
+            temperatureSlider.addEventListener('input', (e) => {
+              const label = e.target.previousElementSibling;
+              if (label) {
+                label.textContent = `Temperature: ${e.target.value}`;
+              }
+            });
+          }
+          
+          const historySlider = document.getElementById('max-history');
+          if (historySlider) {
+            historySlider.addEventListener('input', (e) => {
+              const label = e.target.previousElementSibling;
+              if (label) {
+                label.textContent = `Message History Length: ${e.target.value}`;
+              }
+            });
+          }
+        });
+      }
+    }
+    
+    // Show settings tab
+    function showSettingsTab(tab) {
+      const tabs = ['app', 'llm'];
+      
+      // Toggle tab buttons
+      tabs.forEach(t => {
+        const button = document.querySelector(`.tab-button[onclick="showSettingsTab('${t}')"]`);
+        const section = document.getElementById(`${t}-settings`);
+        
+        if (t === tab) {
+          button?.classList.add('active');
+          section?.style.setProperty('display', 'block');
+        } else {
+          button?.classList.remove('active');
+          section?.style.setProperty('display', 'none');
+        }
+      });
+    }
+    
+    // Save app settings
+    function saveAppSettings() {
+      if (!window.api) return;
+      
+      const settings = {
+        startMinimized: document.getElementById('start-minimized')?.checked || false,
+        enableNotifications: document.getElementById('enable-notifications')?.checked || false,
+        autoReplyToAll: document.getElementById('auto-reply-all')?.checked || false,
+        debugMode: document.getElementById('debug-mode')?.checked || false,
+        theme: document.getElementById('theme')?.value || 'system',
+        mediaDownloadPath: document.getElementById('media-download-path')?.value || '',
+        // Add delay settings
+        replyDelay: document.getElementById('reply-delay')?.value || 'instant',
+        fixedDelaySeconds: parseInt(document.getElementById('fixed-delay-seconds')?.value || '3'),
+        minDelaySeconds: parseInt(document.getElementById('min-delay-seconds')?.value || '2'),
+        maxDelaySeconds: parseInt(document.getElementById('max-delay-seconds')?.value || '10')
+      };
+      
+      window.api.settings.setAppSettings(settings).then(() => {
+        showMessage('Application settings saved successfully');
+      });
+    }
+    
+    // Handle delay type selection changes
+    function setupDelaySettingsHandlers() {
+      const replyDelaySelect = document.getElementById('reply-delay');
+      if (replyDelaySelect) {
+        replyDelaySelect.addEventListener('change', (e) => {
+          const value = e.target.value;
+          const fixedSettings = document.getElementById('fixed-delay-settings');
+          const randomSettings = document.getElementById('random-delay-settings');
+          
+          if (value === 'fixed') {
+            fixedSettings.style.display = 'block';
+            randomSettings.style.display = 'none';
+          } else if (value === 'random') {
+            fixedSettings.style.display = 'none';
+            randomSettings.style.display = 'block';
+          } else {
+            fixedSettings.style.display = 'none';
+            randomSettings.style.display = 'none';
+          }
+        });
+      }
+      
+      // Setup slider value display updates
+      const fixedSlider = document.getElementById('fixed-delay-seconds');
+      const fixedValue = document.getElementById('fixed-delay-value');
+      if (fixedSlider && fixedValue) {
+        fixedSlider.addEventListener('input', () => {
+          fixedValue.textContent = fixedSlider.value;
+        });
+      }
+      
+      const minSlider = document.getElementById('min-delay-seconds');
+      const minValue = document.getElementById('min-delay-value');
+      if (minSlider && minValue) {
+        minSlider.addEventListener('input', () => {
+          minValue.textContent = minSlider.value;
+        });
+      }
+      
+      const maxSlider = document.getElementById('max-delay-seconds');
+      const maxValue = document.getElementById('max-delay-value');
+      if (maxSlider && maxValue) {
+        maxSlider.addEventListener('input', () => {
+          maxValue.textContent = maxSlider.value;
+        });
+      }
+    }
+    
+    // Save LLM settings
+    function saveLLMSettings() {
+      if (!window.api) return;
+      
+      const provider = document.getElementById('llm-provider')?.value || 'openai';
+      
+      const settings = {
+        provider: provider,
+        model: document.getElementById('model')?.value || 'gpt-3.5-turbo',
+        temperature: parseFloat(document.getElementById('temperature')?.value || '0.7'),
+        systemPrompt: document.getElementById('system-prompt')?.value || 'You are a helpful WhatsApp assistant.',
+        maxHistoryLength: parseInt(document.getElementById('max-history')?.value || '10')
+      };
+      
+      // Add provider-specific fields
+      if (provider === 'openai') {
+        settings.apiKey = document.getElementById('api-key')?.value || '';
+      } else {
+        settings.apiEndpoint = document.getElementById('api-endpoint')?.value || '';
+      }
+      
+      window.api.settings.setLLMSettings(settings).then(() => {
+        showMessage('LLM settings saved successfully');
+      });
+    }
+    
+    // Test LLM settings
+    function testLLMSettings() {
+      if (!window.api) return;
+      
+      // Get current values from the form
+      const provider = document.getElementById('llm-provider')?.value || 'openai';
+      
+      const settings = {
+        provider: provider,
+        model: document.getElementById('model')?.value || 'gpt-3.5-turbo',
+        temperature: parseFloat(document.getElementById('temperature')?.value || '0.7'),
+        systemPrompt: document.getElementById('system-prompt')?.value || 'You are a helpful WhatsApp assistant.',
+        maxHistoryLength: parseInt(document.getElementById('max-history')?.value || '10')
+      };
+      
+      // Add provider-specific fields
+      if (provider === 'openai') {
+        settings.apiKey = document.getElementById('api-key')?.value || '';
+      } else {
+        settings.apiEndpoint = document.getElementById('api-endpoint')?.value || '';
+      }
+      
+      // Show testing message
+      const button = document.querySelector('button[onclick="testLLMSettings()"]');
+      const originalText = button.textContent;
+      button.textContent = 'Testing...';
+      button.disabled = true;
+      
+      // Test the settings
+      window.api.settings.testLLM(settings).then(result => {
+        if (result.success) {
+          showMessage('LLM configuration test successful: ' + result.message);
+        } else {
+          showMessage('LLM configuration test failed: ' + result.message, true);
+        }
+        
+        // Restore button
+        button.textContent = originalText;
+        button.disabled = false;
+      });
+    }
+    
+    // Show a message to the user
+    function showMessage(message, isError = false) {
+      // Create message element
+      const messageEl = document.createElement('div');
+      messageEl.style.position = 'fixed';
+      messageEl.style.bottom = '20px';
+      messageEl.style.right = '20px';
+      messageEl.style.padding = '10px 20px';
+      messageEl.style.borderRadius = '5px';
+      messageEl.style.backgroundColor = isError ? '#f44336' : '#4caf50';
+      messageEl.style.color = 'white';
+      messageEl.style.zIndex = '1000';
+      messageEl.textContent = message;
+      
+      // Add to document
+      document.body.appendChild(messageEl);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        messageEl.style.opacity = '0';
+        messageEl.style.transition = 'opacity 0.5s';
+        setTimeout(() => {
+          document.body.removeChild(messageEl);
+        }, 500);
+      }, 3000);
+    }
+    
+    // Show error message
+    function showError(message) {
+      const main = document.querySelector('main');
+      main.innerHTML = `
+        <div class="error" style="padding:20px; color:white; text-align:center;">
+          <h2>Error</h2>
+          <p>${message}</p>
+          <button onclick="window.location.reload()">Reload</button>
+        </div>
+      `;
+    }
+    
+    // Update chats list
+    function updateChatsList(chats) {
+      console.log("Updated chats:", chats.length);
+      
+      // Flag that we've received chats at least once
+      window.chatListLoaded = true;
+      
+      // Only update if we're on the chats tab
+      if (window.currentTab === 'settings') {
+        console.log("Not updating chats list because settings tab is active");
+        return;
+      }
+      
+      // Get the chat list container
+      const chatList = document.getElementById('chat-list');
+      if (!chatList) {
+        console.log("Chat list container not found, not on chats tab");
+        return;
+      }
+      
+      // Clear loading
+      chatList.innerHTML = '';
+      
+      if (chats.length === 0) {
+        chatList.innerHTML = '<div style="padding: 20px; text-align: center;">No chats found</div>';
+        return;
+      }
+      
+      // Add each chat to the list
+      chats.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.setAttribute('data-chat-id', chat.id);
+        
+        // Format timestamp
+        const date = new Date(chat.timestamp || Date.now());
+        const timeStr = date.getHours().toString().padStart(2, '0') + ':' + 
+                       date.getMinutes().toString().padStart(2, '0');
+        
+        // Safely handle potentially missing properties
+        const lastMessageText = chat.lastMessage ? (chat.lastMessage.body || '') : '';
+        
+        chatItem.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="chat-name">${chat.name || 'Unknown'}</div>
+            <div style="font-size: 12px; color: #aaa;">${timeStr}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="last-message">${lastMessageText}</div>
+            ${chat.unreadCount > 0 ? `<div style="background: #1976d2; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px;">${chat.unreadCount}</div>` : ''}
+          </div>
+          <div class="auto-reply-toggle">
+            <label class="switch">
+              <input type="checkbox" ${chat.autoReplyEnabled ? 'checked' : ''} onclick="toggleAutoReply('${chat.id}', this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span style="margin-left: 8px; font-size: 12px;">Auto-reply</span>
+          </div>
+        `;
+        
+        // Add click event to load chat
+        chatItem.addEventListener('click', (e) => {
+          // Don't trigger if click was on the toggle
+          if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+            return;
+          }
+          loadChat(chat.id);
+        });
+        
+        chatList.appendChild(chatItem);
+      });
+    }
+    
+    // Toggle auto-reply for a chat
+    function toggleAutoReply(chatId, enabled) {
+      console.log(`Toggle auto-reply for chat ${chatId}: ${enabled}`);
+      if (window.api) {
+        window.api.chats.toggleAutoReply(chatId, enabled);
+      }
+    }
+    
+    // Load a specific chat
+    function loadChat(chatId) {
+      console.log(`Loading chat ${chatId}`);
+      if (!window.api) return;
+      
+      // Mark all chat items as unselected
+      document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Mark this chat as selected
+      const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
+      if (chatItem) chatItem.classList.add('selected');
+      
+      // Show loading in the chat view
+      const chatView = document.getElementById('chat-view');
+      if (!chatView) return;
+      
+      chatView.innerHTML = `
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Loading messages...</p>
+        </div>
+      `;
+      
+      // Get chat history
+      window.api.chats.getHistory(chatId).then(data => {
+        if (!data) {
+          chatView.innerHTML = `<div class="welcome"><p>No messages found</p></div>`;
+          return;
+        }
+        
+        // Set the chat ID on the chat view for reference when receiving messages
+        chatView.setAttribute('data-chat-id', data.chat.id);
+        
+        // Create chat header
+        chatView.innerHTML = `
+          <div class="chat-header">
+            <h3>${data.chat.name}</h3>
+            <div>
+              <label class="switch">
+                <input type="checkbox" ${data.chat.autoReplyEnabled ? 'checked' : ''} 
+                  onclick="toggleAutoReply('${data.chat.id}', this.checked)">
+                <span class="slider"></span>
+              </label>
+              <span>Auto-reply</span>
+            </div>
+          </div>
+          <div class="messages" id="messages"></div>
+          <div class="message-input">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button onclick="sendMessage('${data.chat.id}')">Send</button>
+          </div>
+        `;
+        
+        // Add message input event listener
+        const input = document.getElementById('message-input');
+        if (input) {
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              sendMessage(data.chat.id);
+            }
+          });
+        }
+        
+        // Add messages
+        const messagesContainer = document.getElementById('messages');
+        if (messagesContainer) {
+          data.messages.forEach(message => {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${message.fromMe ? 'from-me' : 'from-them'}`;
+            
+            // Format timestamp
+            const date = new Date(message.timestamp);
+            const timeStr = date.getHours().toString().padStart(2, '0') + ':' + 
+                          date.getMinutes().toString().padStart(2, '0');
+            
+            messageEl.innerHTML = `
+              <div>${message.body}</div>
+              <div style="font-size: 10px; text-align: right; margin-top: 4px;">
+                ${timeStr}
+                ${message.isLLMResponse ? ' 🤖' : ''}
+              </div>
+            `;
+            
+            messagesContainer.appendChild(messageEl);
+          });
+          
+          // Scroll to bottom
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      });
+    }
+    
+    // Send a message
+    function sendMessage(chatId) {
+      const input = document.getElementById('message-input');
+      if (!input || !input.value.trim()) return;
+      
+      const text = input.value.trim();
+      input.value = '';
+      
+      if (window.api) {
+        window.api.chats.sendMessage(chatId, text).then(success => {
+          if (success) {
+            console.log('Message sent successfully');
+            
+            // Add the message to the UI optimistically
+            const messagesContainer = document.getElementById('messages');
+            if (messagesContainer) {
+              const messageEl = document.createElement('div');
+              messageEl.className = 'message from-me';
+              
+              // Format timestamp
+              const date = new Date();
+              const timeStr = date.getHours().toString().padStart(2, '0') + ':' + 
+                          date.getMinutes().toString().padStart(2, '0');
+              
+              messageEl.innerHTML = `
+                <div>${text}</div>
+                <div style="font-size: 10px; text-align: right; margin-top: 4px;">
+                  ${timeStr}
+                </div>
+              `;
+              
+              messagesContainer.appendChild(messageEl);
+              
+              // Scroll to bottom
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+          } else {
+            console.error('Failed to send message');
+          }
+        });
+      }
+    }
+    
+    // Start initialization when the window loads
+    window.addEventListener('DOMContentLoaded', () => {
+      initialize();
+    });
+  </script>
+</body>
+</html>
