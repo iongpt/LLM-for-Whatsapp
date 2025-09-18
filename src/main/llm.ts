@@ -124,8 +124,12 @@ async function generateCustomEndpointResponse(messages: LLMMessage[]): Promise<s
   
   // Prepare request in OpenAI-compatible format
   const payload = {
-    model: llmSettings.model,
-    messages,
+    model: llmSettings.model,   // e.g., "llama3"
+    stream:false,
+    messages: messages.map(m => ({
+      role: m.role,
+      content: m.content
+    })),
     temperature: llmSettings.temperature,
     max_tokens: 500,
   };
@@ -135,8 +139,8 @@ async function generateCustomEndpointResponse(messages: LLMMessage[]): Promise<s
       'Content-Type': 'application/json',
     },
   });
-  
-  return response.data.choices?.[0]?.message?.content || null;
+  console.log(response.data)
+   return response.data?.message?.content || null;
 }
 
 // Test the LLM configuration
