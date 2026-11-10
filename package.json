@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx electron .",
     "dev": "concurrently \"npm run build:watch\" \"npx electron .\"",
-    "build": "tsc && mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/",
+    "build": "tsc && node -e \"require('fs').mkdirSync('dist/renderer', {recursive: true}); require('fs').copyFileSync('src/renderer/index.html', 'dist/renderer/index.html');\"",
     "build:watch": "tsc -w & (mkdir -p dist/renderer && cp src/renderer/index.html dist/renderer/ && nodemon --watch src/renderer/*.html --exec 'cp src/renderer/index.html dist/renderer/')",
     "lint": "eslint src --ext .ts,.tsx",
     "package:all": "npm run build && npm run package:win && npm run package:mac && npm run package:linux",
